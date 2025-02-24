@@ -1,0 +1,49 @@
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ path('main') }}">Accueil</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Liens alignés à gauche -->
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('main_about') }}">Créer un évènement</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('main_about') }}">Liste des évènements</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('main_about') }}">À Propos</a>
+                    </li>
+                </ul>
+
+                <!-- Liens alignés à droite -->
+                <ul class="navbar-nav ms-auto">
+                    {% if app.user %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('main_about') }}">Mon profil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('main_about') }}">Déconnexion</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('main_about') }}">S'inscrire</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('main_about') }}">Connexion</a>
+                        </li>
+                    {% endif %}
+
+                    {% if is_granted("ROLE_ADMIN") %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('main_about') }}">Dashboard Admin</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
