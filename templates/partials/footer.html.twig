@@ -1,0 +1,9 @@
+<footer class="bg-dark text-light text-center py-3 mt-5">
+    <div class="container">
+        © ENI École Informatique &bullet; Projet Sortir {{ "now" | date("Y") }}
+        <br>
+        {% if app.user %}
+            <span class="d-block mt-2">Connecté en tant que : <strong>{{ app.user.username }}</strong></span>
+        {% endif %}
+    </div>
+</footer>
