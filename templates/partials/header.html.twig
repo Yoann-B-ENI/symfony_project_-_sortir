@@ -9,10 +9,10 @@
                 <!-- Liens alignés à gauche -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('main_about') }}">Créer un évènement</a>
+                        <a class="nav-link" href="{{ path('event_create') }}">Créer un évènement</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('main_about') }}">Liste des évènements</a>
+                        <a class="nav-link" href="{{ path('event') }}">Liste des évènements</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('main_about') }}">À Propos</a>
@@ -26,20 +26,20 @@
                             <a class="nav-link" href="{{ path('main_about') }}">Mon profil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('main_about') }}">Déconnexion</a>
+                            <a class="nav-link" href="{{ path('app_logout') }}">Déconnexion</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('main_about') }}">S'inscrire</a>
+                            <a class="nav-link" href="{{ path('app_register') }}">S'inscrire</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('main_about') }}">Connexion</a>
+                            <a class="nav-link" href="{{ path('app_login') }}">Connexion</a>
                         </li>
                     {% endif %}
 
                     {% if is_granted("ROLE_ADMIN") %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('main_about') }}">Dashboard Admin</a>
+                        <a class="nav-link" href="{{ path('admin') }}">Dashboard Admin</a>
                     </li>
                     {% endif %}
                 </ul>
