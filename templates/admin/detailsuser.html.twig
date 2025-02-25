@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de l'utilisateur{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Détails de l'utilisateur</h1>
+
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">{{ user.username }}</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>ID :</strong> {{ user.id }}</li>
+                    <li class="list-group-item"><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
+                    <li class="list-group-item"><strong>Email :</strong> {{ user.email }}</li>
+                    <li class="list-group-item"><strong>Rôles :</strong> {{ user.roles | join(', ') }}</li>
+                    <li class="list-group-item"><strong>Prénom :</strong> {{ user.firstname }}</li>
+                    <li class="list-group-item"><strong>Nom :</strong> {{ user.lastname }}</li>
+                    <li class="list-group-item"><strong>Téléphone :</strong> {{ user.telephone }}</li>
+                </ul>
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ path('admin') }}" class="btn btn-secondary">Retour</a>
+                <a href="{{ path('admin_edit_user', {'id': user.id}) }}" class="btn btn-warning">Modifier</a>
+                <form action="{{ path('admin_delete_user', {'id': user.id}) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                        Supprimer
+                    </button>
+                </form>
+
+                {# Bouton Modifier (si nécessaire) #}
+                {#
+                <a href="{{ path('admin_edit_user', { 'id': user.id }) }}" class="btn btn-primary">Modifier</a>
+                #}
+            </div>
+        </div>
+    </div>
+{% endblock %}
