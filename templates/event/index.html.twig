@@ -1,20 +1,46 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello EventController!{% endblock %}
+{% block title %}Liste des événements{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <div class="container mt-4">
+        <h1 class="mb-4 text-center"> Liste des événements</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ title }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/Users/jfrancois2024/Desktop/Symfony_Suite/project_sortir/src/Controller/EventController.php</code></li>
-        <li>Your template at <code>C:/Users/jfrancois2024/Desktop/Symfony_Suite/project_sortir/templates/event/index.html.twig</code></li>
-    </ul>
-</div>
+        {% if eventsList is empty %}
+            <div class="alert alert-info text-center">
+                <p>Aucune sortie de prévue pour le moment.</p>
+            </div>
+        {% else %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for event in eventsList %}
+                    <div class="col">
+                        <div class="card shadow-sm h-100">
+                            {% if event.img %}
+                                <img src="{{ asset("uploads/images/" ~ event.id ~ "/" ~ event.img) }}" class="card-img-top" alt="{{ event.title }}">
+                            {% else %}
+                                <img src="{{ asset('assets/images/default.jpg') }}" class="card-img-top" alt="Image par défaut">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ event.title }}</h5>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"></i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                </p>
+                                <p class="card-text">
+                                    {{ event.description|length > 50 ? event.description|slice(0, 50) ~ '...' : event.description }}
+                                </p>
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{{ path('event_details', {'id': event.id}) }}" class="btn btn-primary btn-sm">Voir</a>
+                                <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}
