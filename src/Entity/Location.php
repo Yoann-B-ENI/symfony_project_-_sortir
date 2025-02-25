@@ -29,11 +29,14 @@ class Location
     #[ORM\Column(length: 255)]
     private ?string $townname = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(type: Types::FLOAT)]
     private ?string $longitude = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(type: Types::FLOAT)]
     private ?string $latitude = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $extraInfo = null;
 
     public function getId(): ?int
     {
@@ -120,6 +123,18 @@ class Location
     public function setLatitude(string $latitude): static
     {
         $this->latitude = $latitude;
+
+        return $this;
+    }
+
+    public function getExtraInfo(): ?string
+    {
+        return $this->extraInfo;
+    }
+
+    public function setExtraInfo(?string $extraInfo): static
+    {
+        $this->extraInfo = $extraInfo;
 
         return $this;
     }
