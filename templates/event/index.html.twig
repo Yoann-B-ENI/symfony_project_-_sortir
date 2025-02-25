@@ -16,7 +16,7 @@
                     <div class="col">
                         <div class="card shadow-sm h-100">
                             {% if event.img %}
-                                <img src="{{ asset(event.img) }}" class="card-img-top" alt="{{ event.title }}">
+                                <img src="{{ asset("uploads/images/" ~ event.id ~ "/" ~ event.img) }}" class="card-img-top" alt="{{ event.title }}">
                             {% else %}
                                 <img src="{{ asset('assets/images/default.jpg') }}" class="card-img-top" alt="Image par défaut">
                             {% endif %}
