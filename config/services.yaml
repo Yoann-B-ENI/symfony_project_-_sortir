@@ -6,6 +6,7 @@
 parameters:
 
     censored_words : ['con', 'pute', 'merde', 'batard', 'cul', 'putain', 'encule']
+    photo_dir: "%kernel.project_dir%/public/uploads/events"
 
 services:
     # default configuration for services in *this* file

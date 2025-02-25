@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class EventController extends AbstractController
 {
@@ -29,7 +30,7 @@ final class EventController extends AbstractController
     }
 
     #[Route('/event/create', name: 'event_create')]
-    public function create(Request $request, EntityManagerInterface $entityManager, Censuror $censuror): Response
+    public function create(Request $request, EntityManagerInterface $entityManager, Censuror $censuror, #[Autowire('%photo_dir%')] string $photoDir): Response
     {
         $event = new Event();
         $form = $this->createForm(EventType::class, $event);
@@ -37,40 +38,30 @@ final class EventController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $event->setDescription($censuror->purify($event->getDescription()));
-            $imageFile = $form->get('img')->getData();
-
-            if ($imageFile)
-            {
-
-                $filename = 'coverimg.jpg';
-                $event->setImg($filename);
-            }
-
 
             $entityManager->persist($event);
             $entityManager->flush();
 
-            if ($imageFile) {
-
-                $uploadDir = $this->getParameter('kernel.project_dir') . "/public/uploads/images/" . $event->getId() . "/";
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, true);
-                }
-
-                try {
-                    $imageFile->move($uploadDir, $filename);
-                } catch (FileException $e) {
-                    throw new \Exception("Impossible de sauvegarder l'image.");
-                }
+            if (!$event->getId()) {
+                throw new \Exception("Erreur : l'événement n'a pas pu être créé.");
             }
 
+            if ($imageFile = $form->get('img')->getData()) {
+
+                $filename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
+
+                $imageFile->move($photoDir, $filename);
 
 
-
+                $event->setImg($filename);
+                $entityManager->flush();
+            }
 
             return $this->redirectToRoute('event');
-
         }
+
+
+
 
         return $this->render('event/create.html.twig', [
             'form'=>$form,
@@ -80,35 +71,47 @@ final class EventController extends AbstractController
 
 
     #[Route('/event/{id}/update', name: 'event_update')]
-    public function update(Request $request, EntityManagerInterface $entityManager, Event $event): Response
-    {
-
+    public function update(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        Event $event,
+        #[Autowire('%photo_dir%')] string $photoDir // 🔹 Injection du répertoire d'upload
+    ): Response {
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $imageFile = $form->get('img')->getData();
-
-            if ($imageFile) {
-                $eventId = $event->getId();
-                $uploadDir = $this->getParameter('kernel.project_dir') . "/public/uploads/images/$eventId/";
-
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, true);
+            // 🔹 Vérifier si une nouvelle image est téléchargée
+            if ($imageFile = $form->get('img')->getData()) {
+                // 🔹 Supprimer l'ancienne image si elle existe
+                if ($event->getImg()) {
+                    $oldImagePath = $photoDir . '/' . $event->getImg();
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
                 }
 
-                $imageFile->move($uploadDir, 'coverimg.jpg');
-                $event->setImg("coverimg.jpg");
+                // 🔹 Générer un nom unique pour l'image
+                $filename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
+
+                // 🔹 Déplacer l'image dans le bon dossier
+                $imageFile->move($photoDir, $filename);
+
+                // 🔹 Associer la nouvelle image à l'événement
+                $event->setImg($filename);
             }
 
+            // 🔹 Sauvegarder les changements
             $entityManager->flush();
             return $this->redirectToRoute('event');
         }
-    return $this->render('event/update.html.twig', [
-        'form'=>$form,
-        'event'=>$event,
-]);
+
+        return $this->render('event/update.html.twig', [
+            'form' => $form->createView(),
+            'event' => $event,
+        ]);
     }
+
 
     #[Route('/event/{id}/delete', name: 'event_delete')]
 public function delete(Request $request, Event $event, EntityManagerInterface $entityManager): Response

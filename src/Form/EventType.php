@@ -39,6 +39,7 @@ class EventType extends AbstractType
             ->add('img', FileType::class, [
                 'label' => 'Image',
                 'mapped' => false,
+                'required' => false,
                 'attr' => ['class'=> 'form-control'],
                 'constraints' => [
                     new File([
