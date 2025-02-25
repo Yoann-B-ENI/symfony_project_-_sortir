@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class EventController extends AbstractController
 {
-    #[Route('/', name: 'event')]
+    #[Route('/event/', name: 'event')]
     public function index(): Response
     {
         return $this->render('event/index.html.twig', [
