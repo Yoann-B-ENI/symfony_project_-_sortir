@@ -28,7 +28,7 @@ class Event
     #[ORM\Column]
     private ?int $nbMaxParticipants = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $img = null;
 
     #[ORM\Column(type: Types::TEXT)]
