@@ -12,6 +12,8 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Validator\Constraints\File;
+
 
 class EventType extends AbstractType
 {
@@ -34,9 +36,17 @@ class EventType extends AbstractType
                 'label'=> 'Nombre de participants',
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Nombre de participants'],
             ])
-            ->add('img', TextType::class, [
+            ->add('img', FileType::class, [
                 'label' => 'Image',
-                'attr' => ['class'=> 'form-control', 'placeholder' => 'Image'],
+                'mapped' => false,
+                'attr' => ['class'=> 'form-control'],
+                'constraints' => [
+                    new File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, PNG, WEBP)',
+                    ])
+                    ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',

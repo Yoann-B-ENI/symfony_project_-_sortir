@@ -90,7 +90,7 @@ class Event
         return $this->img;
     }
 
-    public function setImg(string $img): static
+    public function setImg(string $img): self
     {
         $this->img = $img;
 
