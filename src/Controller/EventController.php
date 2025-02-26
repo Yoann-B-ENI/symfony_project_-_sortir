@@ -8,6 +8,7 @@ use App\Service\Censuror;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,6 +41,8 @@ final class EventController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $event->setDescription($censuror->purify($event->getDescription()));
             $event->setTitle($censuror->purify($event->getTitle()));
+            $event->setOrganizer($this->getUser());
+            $event->setCampus($this->getUser()->getCampus());
 
             $imageFile = $form->get('img')->getData();
 
@@ -56,6 +59,7 @@ final class EventController extends AbstractController
             }
 
             if ($imageFile) {
+                // events/images -> events/images/5
                 $photoDir = $photoDir . "/" . $event->getId();
                 $imageFile->move($photoDir, $filename);
             }
@@ -73,38 +77,32 @@ final class EventController extends AbstractController
     public function update(
         Request $request,
         EntityManagerInterface $entityManager,
-        Event $event,
+        Event $event, // database call
+        Censuror $censuror,
         #[Autowire('%event_photo_dir%')] string $photoDir,
         #[Autowire('%event_photo_def_filename%')] string $filename
     ): Response {
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
-        $imageFile = $form->get('img')->getData();
-
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('img')->getData();
+            $event->setDescription($censuror->purify($event->getDescription()));
+            $event->setTitle($censuror->purify($event->getTitle()));
+            $event->setOrganizer($this->getUser());
+            $event->setCampus($this->getUser()->getCampus());
 
             if ($imageFile) {
+                // uploads/events -> uploads/events/5
                 $eventPhotoDir = $photoDir . "/" . $event->getId();
-
-                $oldImagePath = $eventPhotoDir . '/' . $event->getImg();
-                if ($event->getImg()) {
-
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
-                }
-
+                // cover_img -> cover_img.jpg/png/...
                 $filename = $filename . '.' . $imageFile->guessExtension();
-
-                $imageFile->move($eventPhotoDir, $filename);
-
                 $event->setImg($filename);
+                $imageFile->move($eventPhotoDir, $filename);
             }
 
-
             $entityManager->flush();
-            return $this->redirectToRoute('event');
+            return $this->redirectToRoute('event_details', ['id' => $event->getId()]);
         }
 
         return $this->render('event/update.html.twig', [
@@ -115,11 +113,28 @@ final class EventController extends AbstractController
 
 
     #[Route('/event/{id}/delete', name: 'event_delete')]
-public function delete(Request $request, Event $event, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request,
+                       Event $event, // database call
+                       EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
             $entityManager->remove($event);
             $entityManager->flush();
+
+            // delete folder
+            $filesystem = new Filesystem();
+
+            // THIS WORKS
+            $tempDir = $this->getParameter('kernel.project_dir');
+            $filesystem->remove([$tempDir.'\public\uploads\events/'.$event->getId()]);
+
+            // DELETES EVERYTHING
+            // $filesystem->remove([$photoDir . '/' . $event->getId() . '/']);
+            // $filesystem->remove([$tempDir.'\public\uploads\events\\'.$event->getId()]);
+            // $filesystem->remove([$tempDir.'/public/uploads/events/' . $event->getId()]);
+
+            // DELETES NOTHING
+            // $filesystem->remove($event->getImg());
         }
 
     return $this->redirectToRoute('event');
@@ -128,6 +143,8 @@ public function delete(Request $request, Event $event, EntityManagerInterface $e
     #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
     public function show(Event $event): Response
     {
+        // database call in parameter name
+
         return $this->render('event/details.html.twig', [
             'event' => $event,
         ]);
