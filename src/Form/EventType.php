@@ -3,7 +3,10 @@
 namespace App\Form;
 
 use App\Entity\Event;
+use App\Entity\Status;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -25,12 +28,12 @@ class EventType extends AbstractType
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Titre'],
             ])
             ->add('startsAt', DateTimeType::class, [
-                'label'=> 'Date et heure de début',
-                'attr' => ['class'=> 'form-control', 'placeholder' => 'Date et heure début'],
+                'label'=> 'Date et heure de fin',
+                'widget' => 'single_text'
             ])
             ->add('endsAt', DateTimeType::class, [
                 'label'=> 'Date et heure de fin',
-                'attr' => ['class'=> 'form-control', 'placeholder' => 'Date et heure de fin'],
+                'widget' => 'single_text'
             ])
             ->add('nbMaxParticipants', IntegerType::class, [
                 'label'=> 'Nombre de participants',
@@ -39,6 +42,7 @@ class EventType extends AbstractType
             ->add('img', FileType::class, [
                 'label' => 'Image',
                 'mapped' => false,
+                'required' => false,
                 'attr' => ['class'=> 'form-control'],
                 'constraints' => [
                     new File([
@@ -51,6 +55,13 @@ class EventType extends AbstractType
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Description'],
+            ])
+
+
+
+            ->add('save', SubmitType::class, [
+                'label' => 'Enregistrer',
+                'attr' => ['class' => 'btn btn-primary'],
             ])
 
         ;
