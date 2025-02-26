@@ -49,6 +49,61 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">Liste des évènements</h4>
+                        <a href="{{ path('admin_add_user') }}" class="btn btn-success">+ Ajouter un évènement</a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Statut</th>
+                                <th>Organisateur</th>
+                                <th>Campus</th>
+                                <th>Localisation</th>
+                                <th>Titre</th>
+                                <th>Début</th>
+                                <th>Fin</th>
+                                <th>Nombre participants</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for event in events %}
+                                <tr>
+                                    <td>{{ event.id }}</td>
+                                    <td>{{ event.status.name }}</td>
+                                    <td>{{ event.organizer.username }}</td>
+                                    <td>{{ event.campus.name }}</td>
+                                    <td>{{ event.location.name }}</td>
+                                    <td>{{ event.title }}</td>
+                                    <td>{{ event.startsAt|date('d/m/Y H:i') }}</td>
+                                    <td>{{ event.endsAt|date('d/m/Y H:i') }}</td>
+                                    <td>{{ event.nbMaxParticipants }}</td>
+
+                                    <td>
+                                        <a href="{{ path('admin_details_event', {'id' : event.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                                        {#
+                                        <a href="{{ path('admin_edit_user', {'id': user.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                                        #}
+                                        <form action="{{ path('admin_delete_event', {'id': event.id}) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet évènement ?');">
+                                                Supprimer
+                                            </button>
+                                        </form>
+
+                                    </td>
+
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
                 {% endif %}
             </div>
         </div>

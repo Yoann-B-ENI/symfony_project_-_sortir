@@ -11,30 +11,73 @@
                 <h4 class="mb-0">Modifier {{ user.username }}</h4>
             </div>
             <div class="card-body">
-                {{ form_start(form) }}
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
                 <div class="mb-3">
                     {{ form_label(form.username) }}
                     {{ form_widget(form.username, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.username.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.username.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.email) }}
                     {{ form_widget(form.email, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.email.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.email.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.firstname) }}
                     {{ form_widget(form.firstname, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.firstname.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.firstname.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.lastname) }}
                     {{ form_widget(form.lastname, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.lastname.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.lastname.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.telephone) }}
                     {{ form_widget(form.telephone, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.telephone.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.telephone.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form_label(form.roles) }}
                     {{ form_widget(form.roles, { 'attr': {'class': 'form-select'} }) }}
+                    {% if form.roles.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.roles.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <button type="submit" class="btn btn-success">Enregistrer</button>
