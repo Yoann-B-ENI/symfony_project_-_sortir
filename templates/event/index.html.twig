@@ -18,7 +18,7 @@
                             {% if event.img %}
                                 <img src="{{ asset(event.img) }}" class="card-img-top" alt="{{ event.title }}">
                             {% else %}
-                                <img src="{{ asset('assets/images/default.jpg') }}" class="card-img-top" alt="Image par défaut">
+                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" alt="Image par défaut">
                             {% endif %}
 
 
