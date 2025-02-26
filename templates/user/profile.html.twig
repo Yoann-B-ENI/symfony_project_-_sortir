@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}A propos{% endblock %}
+
+{% block body %}
+
+    <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <!--TODO: ajouter la photo-->
+                <img src="..." class="img-fluid rounded-start" alt="...">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">Profil :  {{ app.user.username }}</h5>
+                    <!--TODO: ajouter le campus-->
+                    <p class="card-text">Campus : </p>
+                    <p class="card-text">Prénom : {{ app.user.firstname}} </p>
+                    <p class="card-text">Nom : {{ app.user.lastname}} </p>
+                    <p class="card-text">Téléphone: {{ app.user.telephone}} </p>
+                    <p class="card-text">Email: {{ app.user.email}} </p>
+                    <div>
+                        <a href="user_update" class="btn btn-primary">Modifier</a>
+                        <a href="user_delete" class="btn btn-primary">Supprimer</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

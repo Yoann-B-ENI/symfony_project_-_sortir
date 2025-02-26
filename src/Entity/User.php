@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\PasswordStrength;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -20,6 +22,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(message: 'This email is required')]
+    #[Assert\Email(message: 'This email is not valid')]
     private ?string $email = null;
 
     /**
@@ -35,15 +39,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'This lastname is required')]
+    #[Assert\Length(max: 50)]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'This firstname is required')]
+    #[Assert\Length(max: 50)]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\NotBlank(message: 'This phone number is required')]
+    #[Assert\Length(max: 10)]
     private ?string $telephone = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Assert\Length(max: 50)]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
