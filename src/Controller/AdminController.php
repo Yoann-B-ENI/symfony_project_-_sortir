@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\AdminAddUserType;
 use App\Form\AdminEditUserType;
+use App\Repository\EventRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,18 +16,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\SecurityBundle\Security;
 
 
-final class AdminController extends AbstractController{
+final class AdminController extends AbstractController
+{
     #[Route('/admin', name: 'admin')]
-    public function index(UserRepository $userRepository): Response
+    public function index(UserRepository $userRepository, EventRepository $eventRepository): Response
     {
         $users = $userRepository->findAll();
+        $events = $eventRepository->findAll();
 
         return $this->render('admin/index.html.twig', [
             'users' => $users,
+            'events' => $events,
         ]);
     }
 
-    #[Route('/admin/details/{id}', name: 'admin_details_user', requirements: ['id' => '\d+'])]
+    #[Route('/admin/details/user/{id}', name: 'admin_details_user', requirements: ['id' => '\d+'])]
     public function details_user(int $id, UserRepository $userRepository): Response
     {
         $user = $userRepository->find($id);
@@ -40,7 +44,7 @@ final class AdminController extends AbstractController{
         ]);
     }
 
-    #[Route('/admin/delete/{id}', name: 'admin_delete_user', methods: ['POST'])]
+    #[Route('/admin/delete/user/{id}', name: 'admin_delete_user', methods: ['POST'])]
     public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
     {
         $user = $userRepository->find($id);
@@ -57,7 +61,7 @@ final class AdminController extends AbstractController{
 
     }
 
-    #[Route('/admin/edit/{id}', name: 'admin_edit_user', methods: ['GET','POST'])]
+    #[Route('/admin/edit/user/{id}', name: 'admin_edit_user', methods: ['GET', 'POST'])]
     public function edit(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
     {
         $user = $userRepository->find($id);
@@ -85,7 +89,7 @@ final class AdminController extends AbstractController{
         ]);
     }
 
-    #[Route('/admin/add', name: 'admin_add_user')]
+    #[Route('/admin/add/user', name: 'admin_add_user')]
     public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
@@ -129,5 +133,66 @@ final class AdminController extends AbstractController{
             'form' => $form,
         ]);
     }
+
+    #[Route('/admin/details/event/{id}', name: 'admin_details_event', requirements: ['id' => '\d+'])]
+    public function details_event(int $id, EventRepository $eventRepository): Response
+    {
+        $event = $eventRepository->find($id);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Cet évènement n\'existe pas.');
+        }
+
+        return $this->render('admin/detailsevent.html.twig', [
+            'event' => $event,
+        ]);
+    }
+
+    #[Route('/admin/delete/event/{id}', name: 'admin_delete_event', methods: ['POST'])]
+    public function deleteevent(int $id, EventRepository $eventRepository, EntityManagerInterface $entityManager): Response
+    {
+        $event = $eventRepository->find($id);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Cet évènement n\'existe pas.');
+        }
+
+        $entityManager->remove($event);
+        $entityManager->flush();
+        $this->addFlash('success', 'Evènement supprimé avec succès.');
+
+        return $this->redirectToRoute('admin');
+
+    }
+
+
+    #[Route('/admin/edit/event/{id}', name: 'admin_edit_event', methods: ['GET','POST'])]
+    public function editevent(int $id, EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $event = $eventRepository->find($id);
+
+        if (!$event) {
+            throw $this->createNotFoundException('Cet évènement n\'existe pas.');
+        }
+
+        // Création du formulaire
+        $form = $this->createForm(AdminEditUserType::class, $event);
+        $form->handleRequest($request);
+
+        // Traitement du formulaire
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Utilisateur modifié avec succès.');
+
+            return $this->redirectToRoute('admin');
+        }
+
+        // Affichage du formulaire dans la vue
+        return $this->render('admin/edituser.html.twig', [
+            'form' => $form,
+            'user' => $event,
+        ]);
+    }
+
 
 }
