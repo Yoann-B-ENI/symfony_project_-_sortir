@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Utilisateur - {{ user.username }}{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Modifier l'utilisateur</h1>
+
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">Modifier {{ user.username }}</h4>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_label(form.username) }}
+                    {{ form_widget(form.username, { 'attr': {'class': 'form-control'} }) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.email) }}
+                    {{ form_widget(form.email, { 'attr': {'class': 'form-control'} }) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.firstname) }}
+                    {{ form_widget(form.firstname, { 'attr': {'class': 'form-control'} }) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.lastname) }}
+                    {{ form_widget(form.lastname, { 'attr': {'class': 'form-control'} }) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.telephone) }}
+                    {{ form_widget(form.telephone, { 'attr': {'class': 'form-control'} }) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.roles) }}
+                    {{ form_widget(form.roles, { 'attr': {'class': 'form-select'} }) }}
+                </div>
+
+                <button type="submit" class="btn btn-success">Enregistrer</button>
+                <a href="{{ path('admin') }}" class="btn btn-secondary">Annuler</a>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
