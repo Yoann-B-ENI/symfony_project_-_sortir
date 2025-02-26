@@ -8,16 +8,44 @@
 
         {% if event.img %}
             <div class="mt-3">
-                <img src="{{ asset("uploads/images/" ~ event.id ~ "/" ~ event.img) }}" alt="Image de l'événement" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
+                <img src="{{ asset(event.img) }}" alt="{{ event.title }}" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
             </div>
         {% else %}
-            <p>Aucune image disponible.</p>
+            <img src="{{ asset('assets/images/default.jpg') }}" class="card-img-top" alt="Image par défaut">
         {% endif %}
+
+
 
 
         <p><strong>Date :</strong> {{ event.startsAt|date('d/m/Y H:i') }} - {{ event.endsAt|date('d/m/Y H:i') }}</p>
         <p><strong>Participants max :</strong> {{ event.nbMaxParticipants }}</p>
         <p><strong>Description :</strong> {{ event.description }}</p>
+        <p><strong>Statut : </strong> {{ event.status.name }}</p>
+        <p><strong>Organisateur : </strong> {{ event.organizer.username }}</p>
+        <p><strong>Campus : </strong> {{ event.campus.name }}</p>
+
+        <strong>Catégories : </strong>
+        <ul>
+            {% for category in event.categories %}
+                <li>{{ category.name }}</li>
+            {% endfor %}
+        </ul>
+
+        <strong>Participants : </strong>
+        <ul>
+            {% for p in event.participants %}
+                <li>{{ p.username ~ ' - ' ~ p.firstName ~ ' ' ~ p.lastName }}</li>
+            {% endfor %}
+        </ul>
+
+        <strong>Lieu : </strong>
+        <ul>
+            <li>{{ event.location.name }}</li>
+            <li>{{ event.location.roadNumber ~ ' ' ~ event.location.roadName }}</li>
+            <li>{{ event.location.zipCode ~ ' ' ~ event.location.townName }}</li>
+            <li>{{ '°N, °S : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</li>
+            <li>{{ event.location.extraInfo }}</li>
+        </ul>
 
 
         <div class="mt-4">

@@ -13,7 +13,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[UniqueEntity(fields: ['email'], message: 'Il y a déjà un compte associé à cet email')]
+#[UniqueEntity(fields: ['email'], message: 'Il existe déjà un compte associé à cet email.')]
+#[UniqueEntity(fields: ['username'], message: 'Ce nom d\'utilisateur est déjà pris.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -24,12 +25,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(message: 'Veuillez renseigner un Email')]
     #[Assert\Email(message: 'Cet Email n\'est pas valide')]
+    #[Assert\Regex(
+        pattern: '/^[a-z0-9._%+-]+@campus-eni\.fr$/i',
+        message: 'L\'email doit être une adresse campus (ex: name@campus-eni.fr).'
+    )]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Assert\Count(
+        min: 1,
+        minMessage: 'Un rôle minimum est requis.'
+    )]
     private array $roles = [];
 
     /**
@@ -41,20 +50,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: 'Veuillez renseigner un Nom')]
     #[Assert\Length(max: 50,maxMessage: 'Maximum 50 caractères')]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
+        message: 'Le nom doit uniquement contenir des lettres, des espaces, et des tirets.'
+    )]
     private ?string $lastname = null;
-
+    
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: 'Veuillez renseigner un Prénom')]
     #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères')]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
+        message: 'Le prénom doit uniquement contenir des lettres, des espaces, et des tirets.'
+    )]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 20)]
     #[Assert\NotBlank(message: 'Le numéro de téléphone n\'est pas valide')]
-    #[Assert\Length(max: 10)]
+    #[Assert\Length(
+        max: 10,
+        maxMessage: 'Le numéro de téléphone ne peut pas contenir plus de {{ limit }} caractères.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^(0|\+33)[1-9](\d{8})$/',
+        message: 'Le téléphone doit être au format français (ex: 0612345678 ou +33612345678).'
+    )]
     private ?string $telephone = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un pseudo.')]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -65,6 +90,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'Un campus doit être attribué.')]
     private ?Campus $campus = null;
 
     public function getId(): ?int

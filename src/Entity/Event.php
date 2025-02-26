@@ -121,9 +121,13 @@ class Event
         return $this;
     }
 
+    public static function getDefaultImg(): string{
+        return 'uploads/events/default_event.png';
+    }
+
     public function getImg(): ?string
     {
-        return $this->img;
+        return $this->img ? '/uploads/events/'. $this->id. '/' . $this->img : null;
     }
 
     public function setImg(string $img): self
