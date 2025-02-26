@@ -118,15 +118,22 @@ final class EventController extends AbstractController
                        EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($event);
-            $entityManager->flush();
 
-            // delete folder
+            $photoDir = $this->getParameter('kernel.project_dir') . '/public/uploads/events/' . $event->getId();
             $filesystem = new Filesystem();
 
+            $filesystem->remove($photoDir);
+
+
+            $entityManager->remove($event);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('event');
+    }
             // THIS WORKS
-            $tempDir = $this->getParameter('kernel.project_dir');
-            $filesystem->remove([$tempDir.'\public\uploads\events/'.$event->getId()]);
+          //  $tempDir = $this->getParameter('kernel.project_dir');
+           // $filesystem->remove([$tempDir.'\public\uploads\events/'.$event->getId()]);
 
             // DELETES EVERYTHING
             // $filesystem->remove([$photoDir . '/' . $event->getId() . '/']);
@@ -135,10 +142,10 @@ final class EventController extends AbstractController
 
             // DELETES NOTHING
             // $filesystem->remove($event->getImg());
-        }
 
-    return $this->redirectToRoute('event');
-    }
+
+    //return $this->redirectToRoute('event');
+    //}
 
     #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
     public function show(Event $event): Response
