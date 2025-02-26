@@ -1,32 +1,30 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}A propos{% endblock %}
-
 {% block body %}
+    <div class="container min-vh-100 justify-content-center py-5">
+        <div class="card mb-3" style="max-width: 540px;">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <!--TODO: ajouter la photo-->
+                    <img src="https://via.placeholder.com/300x400"
+                         class="img-fluid h-100 rounded-start object-fit-cover" alt="...">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body bg-navy-light shadow-lg" style="max-width: 800px; width: 100%">
+                        <h5 class="card-title">Profil : {{ app.user.username }}</h5>
+                        <p class="card-text">Campus : {{ app.user.campus.name }}</p>
+                        <p class="card-text">Prénom : {{ app.user.firstname }} </p>
+                        <p class="card-text">Nom : {{ app.user.lastname }} </p>
+                        <p class="card-text">Téléphone: {{ app.user.telephone }} </p>
+                        <p class="card-text">Email: {{ app.user.email }} </p>
+                        <div>
+                            <a href="{{ path('user_update', {'id': app.user.id}) }}" title="Modifier un utilisateur" class="btn btn-outline-dark">Modifier</a>
+                            <a href="{{ path('user_delete', {'id':app.user.id}) }}" class="btn btn-outline-dark" onclick="return confirm('Voulez-vous supprimer votre profil ?')">Supprimer</a>
+                        </div>
 
-    <div class="card mb-3" style="max-width: 540px;">
-        <div class="row g-0">
-            <div class="col-md-4">
-                <!--TODO: ajouter la photo-->
-                <img src="..." class="img-fluid rounded-start" alt="...">
-            </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                    <h5 class="card-title">Profil :  {{ app.user.username }}</h5>
-                    <!--TODO: ajouter le campus-->
-                    <p class="card-text">Campus : </p>
-                    <p class="card-text">Prénom : {{ app.user.firstname}} </p>
-                    <p class="card-text">Nom : {{ app.user.lastname}} </p>
-                    <p class="card-text">Téléphone: {{ app.user.telephone}} </p>
-                    <p class="card-text">Email: {{ app.user.email}} </p>
-                    <div>
-                        <a href="user_update" class="btn btn-primary">Modifier</a>
-                        <a href="user_delete" class="btn btn-primary">Supprimer</a>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
-
 {% endblock %}

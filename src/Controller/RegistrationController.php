@@ -33,11 +33,6 @@ class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // fill pwd
-
-            // check valid
-
-
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
 
