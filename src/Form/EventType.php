@@ -80,7 +80,7 @@ class EventType extends AbstractType
                 'placeholder' => '--Choisir un lieu--'])
             ->add('save', SubmitType::class, [
                 'label' => 'Enregistrer',
-                'attr' => ['class' => 'btn btn-primary'],
+                'attr' => ['class' => 'btn btn-success'],
             ])
         ;
     }

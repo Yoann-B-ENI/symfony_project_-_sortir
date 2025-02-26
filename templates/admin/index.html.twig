@@ -50,7 +50,7 @@
 
                 <div class="card mb-3 p-3" style="margin-top: 30px;">
                     <h5>Filtrer les événements par organisateur</h5>
-                    {{ form_start(form) }}
+                    {{ form_start(form, { 'method': 'POST' }) }}
                     <div class="d-flex">
                         {{ form_widget(form.organizer, { 'attr': {'class': 'form-select me-2'} }) }}
                         {{ form_widget(form.submit, { 'attr': {'class': 'btn btn-primary'} }) }}
