@@ -30,7 +30,8 @@ final class EventController extends AbstractController
     }
 
     #[Route('/event/create', name: 'event_create')]
-    public function create(Request $request, EntityManagerInterface $entityManager, Censuror $censuror, #[Autowire('%photo_dir%')] string $photoDir): Response
+    public function create(Request $request, EntityManagerInterface $entityManager, Censuror $censuror,
+                           #[Autowire('%event_photo_dir%')] string $photoDir, #[Autowire('%event_photo_def_filename%')] string $filename): Response
     {
         $event = new Event();
         $form = $this->createForm(EventType::class, $event);
@@ -38,7 +39,15 @@ final class EventController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $event->setDescription($censuror->purify($event->getDescription()));
+            $event->setTitle($censuror->purify($event->getTitle()));
 
+            $imageFile = $form->get('img')->getData();
+
+            if ($imageFile) {
+                // cover_img -> cover_img.jpg/png/...
+                $filename = $filename . '.' . $imageFile->guessExtension();
+                $event->setImg($filename);
+            }
             $entityManager->persist($event);
             $entityManager->flush();
 
@@ -46,26 +55,16 @@ final class EventController extends AbstractController
                 throw new \Exception("Erreur : l'événement n'a pas pu être créé.");
             }
 
-            if ($imageFile = $form->get('img')->getData()) {
-
-                $filename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
-
+            if ($imageFile) {
+                $photoDir = $photoDir . "/" . $event->getId();
                 $imageFile->move($photoDir, $filename);
-
-
-                $event->setImg($filename);
-                $entityManager->flush();
             }
 
             return $this->redirectToRoute('event');
         }
 
-
-
-
         return $this->render('event/create.html.twig', [
             'form'=>$form,
-
         ]);
     }
 
@@ -75,39 +74,41 @@ final class EventController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         Event $event,
-        #[Autowire('%photo_dir%')] string $photoDir // 🔹 Injection du répertoire d'upload
+        #[Autowire('%event_photo_dir%')] string $photoDir,
+        #[Autowire('%event_photo_def_filename%')] string $filename
     ): Response {
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
+        $imageFile = $form->get('img')->getData();
+
         if ($form->isSubmitted() && $form->isValid()) {
-            // 🔹 Vérifier si une nouvelle image est téléchargée
-            if ($imageFile = $form->get('img')->getData()) {
-                // 🔹 Supprimer l'ancienne image si elle existe
+
+            if ($imageFile) {
+                $eventPhotoDir = $photoDir . "/" . $event->getId();
+
+                $oldImagePath = $eventPhotoDir . '/' . $event->getImg();
                 if ($event->getImg()) {
-                    $oldImagePath = $photoDir . '/' . $event->getImg();
+
                     if (file_exists($oldImagePath)) {
                         unlink($oldImagePath);
                     }
                 }
 
-                // 🔹 Générer un nom unique pour l'image
-                $filename = bin2hex(random_bytes(6)) . '.' . $imageFile->guessExtension();
+                $filename = $filename . '.' . $imageFile->guessExtension();
 
-                // 🔹 Déplacer l'image dans le bon dossier
-                $imageFile->move($photoDir, $filename);
+                $imageFile->move($eventPhotoDir, $filename);
 
-                // 🔹 Associer la nouvelle image à l'événement
                 $event->setImg($filename);
             }
 
-            // 🔹 Sauvegarder les changements
+
             $entityManager->flush();
             return $this->redirectToRoute('event');
         }
 
         return $this->render('event/update.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
             'event' => $event,
         ]);
     }
