@@ -2,7 +2,11 @@
 
 namespace App\Form;
 
+use App\Entity\Category;
 use App\Entity\Event;
+use App\Entity\Location;
+use App\Entity\Status;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -52,7 +56,26 @@ class EventType extends AbstractType
                 'label' => 'Description',
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Description'],
             ])
-
+            ->add('categories',  EntityType::class, [
+                'label' => 'Catégorie',
+                'class' => Category::class,
+                'choice_label' => 'name',
+                'required' => true,
+                'multiple' => true, // multi select
+                'expanded' => true, // checkboxes
+                'placeholder' => '--Choisir une catégorie--'])
+            ->add('status',  EntityType::class, [
+                'label' => 'Statut',
+                'class' => Status::class,
+                'choice_label' => 'name',
+                'required' => true,
+                'placeholder' => '--Choisir un statut--'])
+            ->add('location',  EntityType::class, [
+                'label' => 'Lieu',
+                'class' => Location::class,
+                'choice_label' => 'name',
+                'required' => true,
+                'placeholder' => '--Choisir un lieu--'])
         ;
     }
 

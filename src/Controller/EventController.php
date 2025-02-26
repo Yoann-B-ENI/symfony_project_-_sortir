@@ -37,15 +37,13 @@ final class EventController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $event->setDescription($censuror->purify($event->getDescription()));
-            $imageFile = $form->get('img')->getData();
 
+            $imageFile = $form->get('img')->getData();
             if ($imageFile)
             {
-
                 $filename = 'coverimg.jpg';
                 $event->setImg($filename);
             }
-
 
             $entityManager->persist($event);
             $entityManager->flush();
@@ -63,10 +61,6 @@ final class EventController extends AbstractController
                     throw new \Exception("Impossible de sauvegarder l'image.");
                 }
             }
-
-
-
-
 
             return $this->redirectToRoute('event');
 
