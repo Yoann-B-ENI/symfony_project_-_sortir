@@ -8,11 +8,13 @@
 
         {% if event.img %}
             <div class="mt-3">
-                <img src="{{ asset("uploads/images/" ~ event.id ~ "/" ~ event.img) }}" alt="Image de l'événement" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
+                <img src="{{ asset(event.img) }}" alt="{{ event.title }}" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
             </div>
         {% else %}
-            <p>Aucune image disponible.</p>
+            <img src="{{ asset('assets/images/default.jpg') }}" class="card-img-top" alt="Image par défaut">
         {% endif %}
+
+
 
 
         <p><strong>Date :</strong> {{ event.startsAt|date('d/m/Y H:i') }} - {{ event.endsAt|date('d/m/Y H:i') }}</p>
