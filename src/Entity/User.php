@@ -15,6 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'Il existe déjà un compte associé à cet email.')]
 #[UniqueEntity(fields: ['username'], message: 'Ce nom d\'utilisateur est déjà pris.')]
+#[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -35,10 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Assert\Count(
-        min: 1,
-        minMessage: 'Un rôle minimum est requis.'
-    )]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un role')]
     private array $roles = [];
 
     /**
@@ -93,6 +91,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotNull(message: 'Un campus doit être attribué.')]
     private ?Campus $campus = null;
 
+    public function __construct(){
+        $this->roles = ['ROLE_USER'];
+    }
     public function getId(): ?int
     {
         return $this->id;
@@ -133,16 +134,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return array_unique($roles);
     }
-
+    #[ORM\PrePersist]
+    public function initializeRoles(): void{
+        if(empty($this->roles)){
+            $this->roles = ['ROLE_USER'];
+        }
+    }
     /**
      * @param list<string> $roles
      */
+
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
 
         return $this;
     }
+
 
     /**
      * @see PasswordAuthenticatedUserInterface
