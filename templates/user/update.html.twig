@@ -1,8 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Modifiez votre profil</h1>
-    <div>
+
+    <div class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
+    <div class="bg-navy text-navy-light p-4 registration-form" style="max-width: 800px; width: 50%;">
+        <h2 class="mb-4 text-center">Modifiez votre profil</h2>
         {{ form_start(userForm, {'attr': {'novalidate': 'novalidate', 'class': 'row g-3'}}) }}
         <div class="col-12 mb-3">
             {{ form_label(userForm.campus, null, {'label_attr': {'class': 'form-label'}}) }}
@@ -11,7 +13,6 @@
         <div class="col-md-6 mb-3">
             {{ form_label(userForm.firstname, 'Prénom *', {'label_attr': {'class': 'form-label'}}) }}
             {{ form_widget(userForm.firstname, {'attr': {'class': 'form-control'}}) }}
-
         </div>
         <div class="col-md-6 mb-3">
             {{ form_label(userForm.lastname, 'Nom *', {'label_attr': {'class': 'form-label'}}) }}
@@ -21,21 +22,20 @@
         <div class="col-md-6 mb-3">
             {{ form_label(userForm.username, 'Pseudo *', {'label_attr': {'class': 'form-label'}}) }}
             {{ form_widget(userForm.username, {'attr': {'class': 'form-control'}}) }}
-
         </div>
         <div class="col-md-6 mb-3">
             {{ form_label(userForm.telephone, 'Téléphone *', {'label_attr': {'class': 'form-label'}}) }}
             {{ form_widget(userForm.telephone, {'attr': {'class': 'form-control'}}) }}
 
         </div>
+
         <div class="col-md-12 mb-3">
             {{ form_label(userForm.img, null, {'label_attr': {'class': 'form-label'}}) }}
             {{ form_widget(userForm.img, {'attr': {'class': 'form-control'}}) }}
-
-            <button type="submit" class="btn btn-outline-dark">Télécharger</button>
         </div>
         <button type="submit" class="btn btn-outline-dark"
                 onclick="return confirm('Etes vous sûr de vouloir modifier votre profil ?');">Enregistrer
         </button>
+    </div>
     </div>
 {% endblock %}
