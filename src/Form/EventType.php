@@ -49,8 +49,8 @@ class EventType extends AbstractType
                 'constraints' => [
                     new File([
                         'maxSize' => '5M',
-                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, PNG, WEBP)',
+                        'mimeTypes' => ['image/jpeg','image/jpg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, JPEG, PNG, WEBP)',
                     ])
                     ],
             ])

@@ -14,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -72,8 +73,17 @@ class RegistrationFormType extends AbstractType
             ->add('telephone', TextType::class, [
                 'label' => 'Numéro de téléphone *'
             ])
-            ->add('img', TextType::class, [
+            ->add('img', FileType::class, [
                 'label' => 'Photo de profil',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, JPEG,  PNG ou WEBP)',
+                    ])
+                ]
             ])
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,
