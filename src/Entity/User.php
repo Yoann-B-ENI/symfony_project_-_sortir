@@ -134,12 +134,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return array_unique($roles);
     }
-    #[ORM\PrePersist]
-    public function initializeRoles(): void{
-        if(empty($this->roles)){
-            $this->roles = ['ROLE_USER'];
-        }
-    }
+
     /**
      * @param list<string> $roles
      */
