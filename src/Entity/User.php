@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -91,8 +93,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotNull(message: 'Un campus doit être attribué.')]
     private ?Campus $campus = null;
 
+    /**
+     * @var Collection<int, NotifMessage>
+     */
+    #[ORM\ManyToMany(targetEntity: NotifMessage::class)]
+    private Collection $messages;
+
     public function __construct(){
         $this->roles = ['ROLE_USER'];
+        $this->messages = new ArrayCollection();
     }
     public function getId(): ?int
     {
@@ -251,6 +260,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCampus(?Campus $campus): static
     {
         $this->campus = $campus;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, NotifMessage>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(NotifMessage $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(NotifMessage $message): static
+    {
+        $this->messages->removeElement($message);
 
         return $this;
     }

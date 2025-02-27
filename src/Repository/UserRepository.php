@@ -33,6 +33,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    public function findMessagesByUser(User $user)
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->innerJoin('u.messages', 'm')  // Join on the relationship
+            ->where('u.id = :userId')
+            ->setParameter('userId', $user->getId());
+
+        return $qb->getQuery()->getResult();
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */

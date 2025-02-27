@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello NotifMessageController!{% endblock %}
+
+{% block body %}
+    <div class="container mt-4 text-center">
+        <h1 class="mb-4">Mes Notifications</h1>
+
+        <strong>Messages : </strong>
+        <table style="border: 2px solid black">
+            <thead style="background-color: rgb(228 240 245)">
+            <tr>
+                <th style="border: 1px solid black">Date</th>
+                <th style="border: 1px solid black">Message</th>
+                <th style="border: 1px solid black">Flagged</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for m in app.user.messages %}
+                <tr>
+                    <td style="border: 1px solid black">TODO mettre une date :)</td>
+                    {% if m.isFlagged %}
+                        <td style="border: 1px solid black"><strong>{{ m.message }}</strong></td>
+                    {% else %}
+                        <td style="border: 1px solid black">{{ m.message }}</td>
+                    {% endif %}
+                    <td style="border: 1px solid black">TODO checkbox pour select</td>
+                </tr>
+            {% endfor %}
+
+            {% for m in messages %}
+                <tr>
+                    <td style="border: 1px solid black">TODO mettre une date :)</td>
+                    {% if m.isFlagged %}
+                        <td style="border: 1px solid black"><strong>{{ m.message }}</strong></td>
+                    {% else %}
+                        <td style="border: 1px solid black">{{ m.message }}</td>
+                    {% endif %}
+                    <td style="border: 1px solid black">TODO checkbox pour select</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot style="background-color: rgb(228 240 245)">
+                <tr>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+
+    </div>
+{% endblock %}
