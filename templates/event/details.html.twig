@@ -62,7 +62,7 @@
                     <td></td>
                     <td></td>
                     <td style="border: 1px solid black">
-                        {% if date() > date(event.startAt) or date() > date(event.endsAt)%}
+                        {% if date() > date(event.startsAt) or date() > date(event.endsAt)%}
                             Evènement déjà passé (ou commencé)
                         {% else %}
                             {% if app.user in event.participants%}
