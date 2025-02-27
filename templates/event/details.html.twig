@@ -18,6 +18,7 @@
 
 
         <p><strong>Date :</strong> {{ event.startsAt|date('d/m/Y H:i') }} - {{ event.endsAt|date('d/m/Y H:i') }}</p>
+        <p><strong>Date max d'inscription :</strong> {{ event.openUntil|date('d/m/Y H:i') }}</p>
         <p><strong>Participants max :</strong> {{ event.nbMaxParticipants }}</p>
         <p><strong>Description :</strong> {{ event.description }}</p>
         <p><strong>Statut : </strong> {{ event.status.name }}</p>
@@ -61,8 +62,16 @@
                     <td></td>
                     <td></td>
                     <td style="border: 1px solid black">
-                        {% if app.user not in event.participants %}
-                            <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                        {% if app.user not in event.participants%}
+                            {% if event.openUntil %}
+                                {% if date() > date(event.openUntil) %}
+                                    Inscription terminée
+                                {% else %}
+                                    <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                            {% endif %}
                         {% else %}
                             Déjà inscrit (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}">Se retirer?</a>)
                         {% endif %}
