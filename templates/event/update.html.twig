@@ -11,7 +11,7 @@
                 <img src="{{ asset(event.img) }}" alt="{{ event.title }}" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
             </div>
         {% else %}
-            <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" alt="Image par défaut">
+            <img src="{{ asset(event.getDefaultImg()) }}" alt="Image par défaut">
         {% endif %}
 
         {{ form_start(form) }}
