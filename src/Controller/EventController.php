@@ -6,6 +6,7 @@ use App\Entity\Event;
 use App\Form\EventType;
 use App\Service\Censuror;
 
+use App\Service\ImageManagement;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
@@ -32,7 +33,11 @@ final class EventController extends AbstractController
 
     #[Route('/event/create', name: 'event_create')]
     public function create(Request $request, EntityManagerInterface $entityManager, Censuror $censuror,
-                           #[Autowire('%event_photo_dir%')] string $photoDir, #[Autowire('%event_photo_def_filename%')] string $filename): Response
+                           #[Autowire('%event_photo_dir%')] string $photoDir,
+                           #[Autowire('%event_photo_def_filename%')] string $filename,
+                           ImageManagement $imageManagement,
+    )
+    : Response
     {
         $event = new Event();
         $form = $this->createForm(EventType::class, $event);
@@ -44,13 +49,6 @@ final class EventController extends AbstractController
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
 
-            $imageFile = $form->get('img')->getData();
-
-            if ($imageFile) {
-                // cover_img -> cover_img.jpg/png/...
-                $filename = $filename . '.' . $imageFile->guessExtension();
-                $event->setImg($filename);
-            }
             $entityManager->persist($event);
             $entityManager->flush();
 
@@ -58,10 +56,11 @@ final class EventController extends AbstractController
                 throw new \Exception("Erreur : l'événement n'a pas pu être créé.");
             }
 
+            $imageFile = $form->get('img')->getData();
             if ($imageFile) {
-                // events/images -> events/images/5
-                $photoDir = $photoDir . "/" . $event->getId();
-                $imageFile->move($photoDir, $filename);
+                $imagePath = $imageManagement->upload($imageFile, $photoDir, $event->getId(), $filename);
+                $event->setImg($imagePath);
+                $entityManager->flush();
             }
 
             return $this->redirectToRoute('event');
@@ -131,21 +130,7 @@ final class EventController extends AbstractController
 
         return $this->redirectToRoute('event');
     }
-            // THIS WORKS
-          //  $tempDir = $this->getParameter('kernel.project_dir');
-           // $filesystem->remove([$tempDir.'\public\uploads\events/'.$event->getId()]);
 
-            // DELETES EVERYTHING
-            // $filesystem->remove([$photoDir . '/' . $event->getId() . '/']);
-            // $filesystem->remove([$tempDir.'\public\uploads\events\\'.$event->getId()]);
-            // $filesystem->remove([$tempDir.'/public/uploads/events/' . $event->getId()]);
-
-            // DELETES NOTHING
-            // $filesystem->remove($event->getImg());
-
-
-    //return $this->redirectToRoute('event');
-    //}
 
     #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
     public function show(Event $event): Response
