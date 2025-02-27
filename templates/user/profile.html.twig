@@ -6,8 +6,11 @@
             <div class="row g-0">
                 <div class="col-md-4">
                     <!--TODO: ajouter la photo-->
-                    <img src="https://via.placeholder.com/300x400"
-                         class="img-fluid h-100 rounded-start object-fit-cover" alt="...">
+                    {% if app.user.img %}
+                        <img src="{{ asset(app.user.img) }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
+                    {% else %}
+                        <img src="{{ asset('uploads/default_profile.jpg') }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
+                    {% endif %}
                 </div>
                 <div class="col-md-8">
                     <div class="card-body bg-navy-light shadow-lg" style="max-width: 800px; width: 100%">

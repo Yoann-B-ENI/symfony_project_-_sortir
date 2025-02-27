@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Controller;
 
@@ -78,7 +78,8 @@ final class EventController extends AbstractController
         Event $event, // database call
         Censuror $censuror,
         #[Autowire('%event_photo_dir%')] string $photoDir,
-        #[Autowire('%event_photo_def_filename%')] string $filename
+        #[Autowire('%event_photo_def_filename%')] string $filename,
+        ImageManagement $imageManagement,
     ): Response {
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
@@ -90,13 +91,24 @@ final class EventController extends AbstractController
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
 
-            if ($imageFile) {
+           /* if ($imageFile) {
                 // uploads/events -> uploads/events/5
                 $eventPhotoDir = $photoDir . "/" . $event->getId();
                 // cover_img -> cover_img.jpg/png/...
                 $filename = $filename . '.' . $imageFile->guessExtension();
                 $event->setImg($filename);
                 $imageFile->move($eventPhotoDir, $filename);
+            } */
+            if ($imageFile) {
+                $newImagePath = $imageManagement->updateImage(
+                    $event->getImg(),  // L'ancienne image
+                    $imageFile,        // La nouvelle image
+                    $photoDir,         // Le répertoire de base
+                    $event->getId(),   // L'ID de l'événement
+                    $filename          // Nom de base du fichier
+                );
+
+                $event->setImg($newImagePath);
             }
 
             $entityManager->flush();
@@ -112,15 +124,18 @@ final class EventController extends AbstractController
 
     #[Route('/event/{id}/delete', name: 'event_delete')]
     public function delete(Request $request,
-                       Event $event, // database call
-                       EntityManagerInterface $entityManager): Response
+                           Event $event,
+                           EntityManagerInterface $entityManager,
+                           ImageManagement $imageManagement,
+                           #[Autowire('%event_photo_dir%')] string $photoDir,
+
+    ): Response
     {
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
-            $photoDir = $this->getParameter('kernel.project_dir') . '/public/uploads/events/' . $event->getId();
-            $filesystem = new Filesystem();
 
-            $filesystem->remove($photoDir);
 
+
+            $imageManagement->deleteImage($photoDir, $event->getId());
             $entityManager->remove($event);
             $entityManager->flush();
         }

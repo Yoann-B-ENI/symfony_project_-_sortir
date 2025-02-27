@@ -21,6 +21,36 @@ class ImageManagement{
         return $filename;
     }
 
+    public function updateImage(?string $currentImage, UploadedFile $newImage, string $baseDirectory, int $entityId, string $defaultFilename): string
+    {
+        $targetDirectory = $baseDirectory . '/' . $entityId;
+        $newFilename = $defaultFilename . '.' . $newImage->guessExtension();
+        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+
+        // ✅ Supprimer l'ancienne image si elle existe
+        if ($currentImage && $filesystem->exists($targetDirectory . '/' . $currentImage)) {
+            $filesystem->remove($targetDirectory . '/' . $currentImage);
+        }
+
+        // ✅ Réutiliser la fonction `upload()`
+        return $this->upload($newImage, $baseDirectory, $entityId, $defaultFilename);
+    }
+
+    public function deleteImage(string $baseDirectory, int $entityId): void
+    {
+        $targetDirectory = $baseDirectory . '/' . $entityId;
+        $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+
+        // ✅ Vérifier si le dossier existe avant de le supprimer
+        if ($filesystem->exists($targetDirectory)) {
+            $filesystem->remove($targetDirectory);
+        }
+
+
+    }
+
+
+// CREATE ANCIEN CODE
     // $imageFile = $form->get('img')->getData();
 
     /*if ($imageFile) {
@@ -35,7 +65,15 @@ class ImageManagement{
                     $imageFile->move($photoDir, $filename);
                 }*/
 
+//UPDATE ANCIEN CODE
 
+
+
+// DELETE ANCIEN CODE :
+
+    //$photoDir = $this->getParameter('kernel.project_dir') . '/public/uploads/events/' . $event->getId();
+    //$filesystem->remove($photoDir);
+    // $filesystem = new Filesystem();
 
 
 
