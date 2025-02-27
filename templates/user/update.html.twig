@@ -6,7 +6,11 @@
     <div class="bg-navy text-navy-light p-4 registration-form" style="max-width: 800px; width: 50%;">
         <h2 class="mb-4 text-center">Modifiez votre profil</h2>
         {{ form_start(userForm, {'attr': {'novalidate': 'novalidate', 'class': 'row g-3'}}) }}
-        
+        <!--TODO: gestion du campus-->
+        <div class="col-12 mb-3">
+            {{ form_label(userForm.campus, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(userForm.campus, {'attr': {'class': 'form-select'}}) }}
+        </div>
         <div class="col-md-6 mb-3">
             {{ form_label(userForm.firstname, 'Prénom *', {'label_attr': {'class': 'form-label'}}) }}
             {{ form_widget(userForm.firstname, {'attr': {'class': 'form-control'}}) }}
