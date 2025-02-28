@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\Campus;
 use App\Entity\User;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -20,6 +22,15 @@ class AdminEditUserType extends AbstractType
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Email'
+            ])
+            ->add('campus', EntityType::class, [
+                'label' => 'Campus',
+                'class' => Campus::class,
+                'choice_label' => 'name',
+                'required' => true,
+                'multiple' => false,
+                'expanded' => false,
+                'placeholder' => 'Choisir un campus',
             ])
             ->add('firstname', TextType::class, [
                 'label' => 'Prénom'

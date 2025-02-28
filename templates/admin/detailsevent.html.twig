@@ -14,10 +14,14 @@
                 <ul class="list-group">
                     <li class="list-group-item"><strong>ID :</strong> {{ event.id }}</li>
                     <li class="list-group-item"><strong>Statut :</strong> {{ event.status.name }}</li>
-                    <li class="list-group-item"><strong>Organisateur :</strong> {{ event.organizer.username }}</li>
+                    <li class="list-group-item">
+                        <strong>Organisateur :</strong>
+                        <a href="{{ path('admin_details_user', {'id': event.organizer.id}) }}">{{ event.organizer.username }}</a>
+                    </li>
                     <li class="list-group-item"><strong>Campus :</strong> {{ event.campus.name }}</li>
                     <li class="list-group-item"><strong>Localisation :</strong> {{ event.location.name }}</li>
                     <li class="list-group-item"><strong>Titre :</strong> {{ event.title }}</li>
+                    <li class="list-group-item"><strong>Description :</strong> {{ event.description }}</li>
                     <li class="list-group-item"><strong>Début :</strong> {{ event.startsAt|date('d/m/Y H:i') }}</li>
                     <li class="list-group-item"><strong>Fin :</strong> {{ event.endsAt|date('d/m/Y H:i') }}</li>
                     <li class="list-group-item"><strong>Nombre de participants :</strong> {{ event.nbMaxParticipants }}</li>
@@ -25,9 +29,7 @@
             </div>
             <div class="card-footer text-end">
                 <a href="{{ path('admin') }}" class="btn btn-secondary">Retour</a>
-                {#
-                <a href="{{ path('admin_edit_user', {'id': user.id}) }}" class="btn btn-warning">Modifier</a>
-                #}
+                <a href="{{ path('admin_edit_event', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
                 <form action="{{ path('admin_delete_event', {'id': event.id}) }}" method="POST" class="d-inline">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet évènement ?');">
                         Supprimer
