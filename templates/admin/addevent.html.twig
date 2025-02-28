@@ -1,0 +1,139 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un évènement{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Ajouter un évènement</h1>
+
+        <div class="card shadow">
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                <div class="mb-3">
+                    {{ form_label(form.organizer, 'Organisateur') }}
+                    {{ form_widget(form.organizer, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.organizer.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.organizer.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.title) }}
+                    {{ form_widget(form.title, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.title.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.title.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.startsAt) }}
+                    {{ form_widget(form.startsAt, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.startsAt.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.startsAt.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.endsAt) }}
+                    {{ form_widget(form.endsAt, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.endsAt.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.endsAt.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.nbMaxParticipants) }}
+                    {{ form_widget(form.nbMaxParticipants, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.nbMaxParticipants.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.nbMaxParticipants.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.img) }}
+                    {{ form_widget(form.img, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.img.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.img.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.description.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.description.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.img, 'Image') }}
+                    {% if form.img.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.img.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.categories) }}
+                    {{ form_widget(form.categories, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.categories.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.categories.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.status) }}
+                    {{ form_widget(form.status, { 'attr': {'class': 'form-select'} }) }}
+                    {% if form.status.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.status.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.location) }}
+                    {{ form_widget(form.location, { 'attr': {'class': 'form-select'} }) }}
+                    {% if form.location.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.location.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <a href="{{ path('admin') }}" class="btn btn-secondary">Annuler</a>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
