@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\User;
+use App\Form\EventFilterType;
 use App\Form\EventType;
 use App\Service\Censuror;
 
@@ -22,11 +23,44 @@ final class EventController extends AbstractController
 {
 
     #[Route('/event/', name: 'event')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(Request $request,  EntityManagerInterface $entityManager): Response
     {
-        $eventsList = $entityManager->getRepository(Event::class)->findAll();
+
+        $form = $this->createForm(EventFilterType::class , null, [
+            'method' => 'GET', // Spécifier explicitement que c'est un formulaire GET
+        ]);
+        $form->handleRequest($request);
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $campus = $form->get('campus')->getData();
+            $organizer = $form->get('organizer')->getData();
+            $category = $form->get('category')->getData();
+            $status = $form->get('status')->getData();
+
+            $campusId = $campus ? $campus->getId() : null;
+            $organizerId = $organizer ? $organizer->getId() : null;
+            $categoryId = $category ? $category->getId() : null;
+            $statusId = $status ? $status->getId() : null;
+            $userId = $this->getUser() ? $this->getUser()->getId() : null;
+
+
+            // Si aucun filtre n'est sélectionné, afficher tous les événements
+            if (!$campusId && !$organizerId && !$categoryId && !$statusId) {
+                $eventsList = $entityManager->getRepository(Event::class)->findAll();
+            } else {
+                // Utiliser la méthode avec les deux filtres
+                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+            }
+        } else {
+            // Par défaut, afficher tous les événements
+            $eventsList = $entityManager->getRepository(Event::class)->findAll();
+        }
+
         return $this->render('event/index.html.twig', [
             'eventsList' => $eventsList,
+            'form' => $form,
+            'currentUser' => $this->getUser(),
         ]);
     }
 
@@ -81,6 +115,11 @@ final class EventController extends AbstractController
         #[Autowire('%event_photo_def_filename%')] string $filename,
         ImageManagement $imageManagement,
     ): Response {
+
+        if ($this->getUser() !== $event->getOrganizer()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cet événement.');
+        }
+
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
@@ -124,9 +163,11 @@ final class EventController extends AbstractController
 
     ): Response
     {
+        if ($this->getUser() !== $event->getOrganizer()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à supprimer cet événement.');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
-
-
 
             $imageManagement->deleteImage($photoDir, $event->getId());
             $entityManager->remove($event);
@@ -142,6 +183,7 @@ final class EventController extends AbstractController
         // database call in parameter name
         return $this->render('event/details.html.twig', [
             'event' => $event,
+            'currentUser' => $this->getUser(),
         ]);
     }
 

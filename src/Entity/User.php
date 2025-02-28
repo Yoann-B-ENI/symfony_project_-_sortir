@@ -219,6 +219,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public static function getDefaultImg(): string{
+        return 'uploads/users/default_profile.png';
+    }
+
     public function getImg(): ?string
     {
 
