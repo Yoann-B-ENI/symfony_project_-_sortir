@@ -84,6 +84,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $img = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: 'Email user non validé en BDD')]
     private bool $isVerified = false;
 
     #[ORM\ManyToOne]

@@ -7,8 +7,10 @@
         <h2 class="mb-4 text-center">Modifiez votre profil</h2>
         {{ form_start(userForm, {'attr': {'novalidate': 'novalidate', 'class': 'row g-3'}}) }}
         <!--TODO: gestion du campus-->
-        <div class="col-12 mb-3">
-            <h3 class="card-text">Campus de {{ app.user.campus.name }}</h3>
+        <p class="card-text">Campus de {{ app.user.campus.name }}</p>
+        <div class="col-12 mb-3" hidden="hidden">
+            {{ form_label(userForm.campus, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(userForm.campus, {'attr': {'class': 'form-select'}}) }}
         </div>
         <div class="col-md-6 mb-3">
             {{ form_label(userForm.firstname, 'Prénom *', {'label_attr': {'class': 'form-label'}}) }}
