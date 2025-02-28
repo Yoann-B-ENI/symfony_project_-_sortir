@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\User;
-use App\Form\AdminAddEventType;
+use App\Form\AdminEditEventType;
 use App\Form\AdminAddUserType;
 use App\Form\AdminEditUserType;
 use App\Form\EventFilterType;
@@ -13,6 +13,7 @@ use App\Repository\EventRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -35,10 +36,10 @@ final class AdminController extends AbstractController
 
 
         if ($form->isSubmitted() && $form->isValid()) {
-            dump($request->request->all());
+
             $organizer = $form->get('organizer')->getData();
             if ($organizer instanceof User) {
-                $events = $eventRepository->findOneBy(['organizer' => $organizer->getId()]);
+                $events = $eventRepository->findBy(['organizer' => $organizer->getId()]);
 
                 return $this->render('admin/index.html.twig', [
                     'users' => $users,
@@ -56,9 +57,11 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/details/user/{id}', name: 'admin_details_user', requirements: ['id' => '\d+'])]
-    public function details_user(int $id, UserRepository $userRepository): Response
+    public function details_user(int $id, UserRepository $userRepository, EventRepository $eventRepository): Response
     {
         $user = $userRepository->find($id);
+        $events = $eventRepository->findBy(['organizer' => $user]);
+        $eventParticipating = $eventRepository->findByParticipatingUser($user);
 
         if (!$user) {
             throw $this->createNotFoundException('Cet utilisateur n\'existe pas.');
@@ -66,6 +69,8 @@ final class AdminController extends AbstractController
 
         return $this->render('admin/detailsuser.html.twig', [
             'user' => $user,
+            'events' => $events,
+            'eventParticipating' => $eventParticipating,
         ]);
     }
 
@@ -191,48 +196,83 @@ final class AdminController extends AbstractController
     }
 
 
-    #[Route('/admin/edit/event/{id}', name: 'admin_edit_event', methods: ['GET','POST'])]
-    public function editevent(int $id, EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request): Response
+    #[Route('/admin/edit/event/{id}', name: 'admin_edit_event', methods: ['GET', 'POST'])]
+    public function editevent(int $id, EventRepository $eventRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
     {
         $event = $eventRepository->find($id);
+        $users = $userRepository->findAll();
 
         if (!$event) {
             throw $this->createNotFoundException('Cet évènement n\'existe pas.');
         }
 
-        // Création du formulaire
-        $form = $this->createForm(AdminEditUserType::class, $event);
+        // Créer le formulaire
+        $form = $this->createForm(AdminEditEventType::class, $event);
         $form->handleRequest($request);
+
+        // Vérifie si un organisateur a été sélectionné et si son campus a changé
+        $selectedOrganizer = $event->getOrganizer();
+        $campus = $selectedOrganizer ? $selectedOrganizer->getCampus() : null;
 
         // Traitement du formulaire
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-            $this->addFlash('success', 'Utilisateur modifié avec succès.');
+            // Si un organisateur a changé, on met à jour le campus
+            $organizer = $event->getOrganizer();
+            if ($organizer && $organizer->getCampus()) {
+                $event->setCampus($organizer->getCampus());
+            }
 
+            // Persister les changements
+            $entityManager->flush();
+
+            // Message de succès
+            $this->addFlash('success', 'Evènement modifié avec succès.');
+
+            // Rediriger vers la page admin
             return $this->redirectToRoute('admin');
         }
 
         // Affichage du formulaire dans la vue
-        return $this->render('admin/edituser.html.twig', [
-            'form' => $form,
-            'user' => $event,
+        return $this->render('admin/editevent.html.twig', [
+            'form' => $form->createView(),
+            'event' => $event,
+            'users' => $users,
+            'selectedOrganizer' => $selectedOrganizer,
+            'campus' => $campus, // Passe le campus à la vue pour qu'il soit affiché
         ]);
     }
 
+
     #[Route('/admin/add/event', name: 'admin_add_event', methods: ['GET', 'POST'])]
-    public function addevent(EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request): Response
+    public function addevent(EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request, UserRepository $userRepository): Response
     {
         $event = new Event();
 
         // Créer le formulaire
-        $form = $this->createForm(AdminAddEventType::class, $event);
+        $form = $this->createForm(AdminEditEventType::class, $event);
         $form->handleRequest($request);
+
+        // Récupérer tous les utilisateurs pour le menu déroulant
+        $users = $userRepository->findAll();  // Ou tu peux filtrer selon les rôles ou critères
+
+        // Vérifie si un organisateur est déjà sélectionné
+        $selectedOrganizer = $event->getOrganizer();
+
+        // Si un organisateur est sélectionné, récupérer son campus
+        $campus = null;
+        if ($selectedOrganizer) {
+            $campus = $selectedOrganizer->getCampus();
+        }
 
         // Traitement du formulaire
         if ($form->isSubmitted() && $form->isValid()) {
+            // Si un organisateur est sélectionné et a un campus, assigner le campus à l'événement
+            $organizer = $event->getOrganizer();
+            if ($organizer && $organizer->getCampus()) {
+                $event->setCampus($organizer->getCampus());
+            }
 
-
-            // Persister l'utilisateur
+            // Persister l'événement
             $entityManager->persist($event);
             $entityManager->flush();
 
@@ -245,9 +285,27 @@ final class AdminController extends AbstractController
 
         // Affichage du formulaire dans la vue
         return $this->render('admin/addevent.html.twig', [
-            'form' => $form,
+            'form' => $form->createView(),
+            'campus' => $campus,  // Passe le campus à la vue pour un premier affichage
+            'users' => $users,    // Passe la liste des utilisateurs à la vue
         ]);
     }
+
+
+
+    #[Route('/admin/get-campus/{userId}', name: 'admin_get_campus', methods: ['GET'])] // Route pour précharger le campus (Admin - créer un Event)
+    public function getCampus(UserRepository $userRepository, int $userId): JsonResponse
+    {
+        $user = $userRepository->find($userId);
+
+        if (!$user || !$user->getCampus()) {
+            return new JsonResponse(['campus' => null], Response::HTTP_NOT_FOUND);
+        }
+
+        return new JsonResponse(['campus' => $user->getCampus()->getName()]);
+    }
+
+
 
 
 }

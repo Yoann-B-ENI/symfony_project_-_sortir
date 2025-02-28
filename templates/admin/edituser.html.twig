@@ -36,6 +36,17 @@
                     {% endif %}
                 </div>
                 <div class="mb-3">
+                    {{ form_label(form.campus) }}
+                    {{ form_widget(form.campus, { 'attr': {'class': 'form-control'} }) }}
+                    {% if form.campus.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in form.campus.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
                     {{ form_label(form.firstname) }}
                     {{ form_widget(form.firstname, { 'attr': {'class': 'form-control'} }) }}
                     {% if form.firstname.vars.errors|length > 0 %}

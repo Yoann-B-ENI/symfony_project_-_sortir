@@ -13,12 +13,41 @@
             <div class="card-body">
                 <ul class="list-group">
                     <li class="list-group-item"><strong>ID :</strong> {{ user.id }}</li>
+                    <li class="list-group-item"><strong>Campus :</strong> {{ user.campus.name }}</li>
                     <li class="list-group-item"><strong>Nom d'utilisateur :</strong> {{ user.username }}</li>
                     <li class="list-group-item"><strong>Email :</strong> {{ user.email }}</li>
                     <li class="list-group-item"><strong>Rôles :</strong> {{ user.roles | join(', ') }}</li>
                     <li class="list-group-item"><strong>Prénom :</strong> {{ user.firstname }}</li>
                     <li class="list-group-item"><strong>Nom :</strong> {{ user.lastname }}</li>
                     <li class="list-group-item"><strong>Téléphone :</strong> {{ user.telephone }}</li>
+                    <h5 class="mt-4">Événements organisés par {{ user.username }} :</h5>
+                    {% if events is not empty %}
+                        <ul class="list-group">
+                            {% for event in events %}
+                                <li class="list-group-item">
+                                    <a href="{{ path('admin_details_event', {'id': event.id}) }}">{{ event.title }}</a>
+                                    - {{ event.startsAt|date('d/m/Y H:i') }} à {{ event.endsAt|date('d/m/Y H:i') }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Aucun événement organisé.</p>
+                    {% endif %}
+
+                    <h5 class="mt-4">Événements auxquels participe {{ user.username }} :</h5>
+                    {% if eventParticipating is not empty %}
+                        <ul class="list-group">
+                            {% for event in eventParticipating %}
+                                <li class="list-group-item">
+                                    <a href="{{ path('admin_details_event', {'id': event.id}) }}">{{ event.title }}</a>
+                                    - {{ event.startsAt|date('d/m/Y H:i') }} à {{ event.endsAt|date('d/m/Y H:i') }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Cet utilisateur n'a pas encore participé à un évènement.</p>
+                    {% endif %}
+
                 </ul>
             </div>
             <div class="card-footer text-end">

@@ -230,7 +230,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getImg(): ?string
     {
-        return $this->img;
+
+        return $this->img ? '/uploads/users/'. $this->id. '/' . $this->img : null;
+
     }
 
     public function setImg(?string $img): static

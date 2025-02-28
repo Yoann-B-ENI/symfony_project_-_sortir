@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Event;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -41,5 +42,14 @@ class EventRepository extends ServiceEntityRepository
     //        ;
     //    }
 
+    public function findByParticipatingUser(User $user)
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->innerJoin('e.participants', 'u')  // Join on the participants relationship
+            ->where('u.id = :userId')
+            ->setParameter('userId', $user->getId());
+
+        return $qb->getQuery()->getResult();
+    }
 
 }
