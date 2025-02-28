@@ -14,6 +14,7 @@ class NotifMessageFixtures extends Fixture
         $temp->setMessage("Ceci est un message de test pour tout le monde")
             ->setIsFlagged(true)
             ->setRoles("['ROLE_USER']")
+            ->setCreatedAt(new \DateTimeImmutable())
             ;
         $manager->persist($temp);
 
@@ -21,6 +22,7 @@ class NotifMessageFixtures extends Fixture
         $temp->setMessage("Ceci est un autre message de test pour tout le monde mais déja lu")
             ->setIsFlagged(false)
             ->setRoles("['ROLE_USER']")
+            ->setCreatedAt(new \DateTimeImmutable())
         ;
         $manager->persist($temp);
 
@@ -28,6 +30,7 @@ class NotifMessageFixtures extends Fixture
         $temp->setMessage("Ceci est un message de test pour tout les admins")
             ->setIsFlagged(true)
             ->setRoles("['ROLE_ADMIN']")
+            ->setCreatedAt(new \DateTimeImmutable())
         ;
         $manager->persist($temp);
 
@@ -35,6 +38,7 @@ class NotifMessageFixtures extends Fixture
         $temp->setMessage("Ceci est un message de test pour Améliiiiiiiie")
             ->setIsFlagged(true)
             ->setRoles("['ROLE_ADMIN']")
+            ->setCreatedAt(new \DateTimeImmutable())
         ;
         $manager->persist($temp);
         $this->addReference("notif_test_amélie", $temp);

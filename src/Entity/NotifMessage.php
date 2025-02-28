@@ -23,6 +23,9 @@ class NotifMessage
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $roles = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -60,6 +63,18 @@ class NotifMessage
     public function setRoles(?string $roles): static
     {
         $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
