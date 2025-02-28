@@ -24,8 +24,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(message: 'Veuillez renseigner un Email')]
-    #[Assert\Email(message: 'Cet Email n\'est pas valide')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un email.')]
+    #[Assert\Email(message: 'Cet email n\'est pas valide.')]
     #[Assert\Regex(
         pattern: '/^[a-z0-9._%+-]+@campus-eni\.fr$/i',
         message: 'L\'email doit être une adresse campus (ex: name@campus-eni.fr).'
@@ -36,7 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Assert\NotBlank(message: 'Veuillez renseigner un role')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un role.')]
     private array $roles = [];
 
     /**
@@ -46,8 +46,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Veuillez renseigner un Nom')]
-    #[Assert\Length(max: 50,maxMessage: 'Maximum 50 caractères')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un nom.')]
+    #[Assert\Length(max: 50,maxMessage: 'Maximum 50 caractères.')]
     #[Assert\Regex(
         pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
         message: 'Le nom doit uniquement contenir des lettres, des espaces, et des tirets.'
@@ -55,8 +55,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastname = null;
     
     #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Veuillez renseigner un Prénom')]
-    #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un prénom.')]
+    #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères.')]
     #[Assert\Regex(
         pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
         message: 'Le prénom doit uniquement contenir des lettres, des espaces, et des tirets.'
@@ -64,7 +64,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $firstname = null;
 
     #[ORM\Column(length: 20)]
-    #[Assert\NotBlank(message: 'Le numéro de téléphone n\'est pas valide')]
+    #[Assert\NotBlank(message: 'Le numéro de téléphone n\'est pas valide.')]
     #[Assert\Length(
         max: 10,
         maxMessage: 'Le numéro de téléphone ne peut pas contenir plus de {{ limit }} caractères.'
@@ -76,7 +76,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $telephone = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères')]
+    #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères.')]
     #[Assert\NotBlank(message: 'Veuillez renseigner un pseudo.')]
     private ?string $username = null;
 

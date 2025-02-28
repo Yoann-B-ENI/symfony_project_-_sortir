@@ -26,7 +26,73 @@
                     <li class="list-group-item"><strong>Fin :</strong> {{ event.endsAt|date('d/m/Y H:i') }}</li>
                     <li class="list-group-item"><strong>Nombre de participants :</strong> {{ event.nbMaxParticipants }}</li>
                 </ul>
+
+                <h5 class="mt-4">Participants</h5>
+                <form method="GET" action="{{ path('admin_details_event', {'id': event.id}) }}">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Rechercher parmi les participants (pseudo, nom de famille, ou email)" name="searchParticipant" value="{{ app.request.get('searchParticipant') }}">
+                        <button class="btn btn-outline-secondary" type="submit">Rechercher</button>
+                    </div>
+                </form>
+
+                <div class="table-scrollable" style="max-height: 300px; overflow-y: scroll;"> <!-- Barre de défilement -->
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Nom d'utilisateur</th>
+                        <th>Prénom Nom</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in participants %}
+                        <tr>
+                            <td>{{ p.username }}</td>
+                            <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
+                            <td>
+                                <a href="{{ path('admin_details_user', {'id': p.id}) }}" class="btn btn-primary btn-sm">Voir</a>
+                                <a href="{{ path('admin_event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Retirer</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+
+                <h5 class="mt-4">Ajouter un participant</h5>
+                <form method="GET" action="{{ path('admin_details_event', {'id': event.id}) }}">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Rechercher parmi les participants (pseudo, nom de famille, ou email)" name="searchUsername" value="{{ app.request.get('searchUsername') }}">
+                        <button class="btn btn-outline-secondary" type="submit">Rechercher</button>
+                    </div>
+                </form>
+
+                <div class="table-scrollable" style="max-height: 300px; overflow-y: scroll;"> <!-- Barre de défilement -->
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <th>Prénom Nom</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for p in users %}
+                            <tr>
+                                <td>{{ p.username }}</td>
+                                <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
+                                <td>
+                                    <a href="{{ path('admin_details_user', {'id': p.id}) }}" class="btn btn-primary btn-sm">Voir</a>
+                                    <a href="{{ path('admin_event_add_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-success btn-sm">Ajouter</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
+
             <div class="card-footer text-end">
                 <a href="{{ path('admin') }}" class="btn btn-secondary">Retour</a>
                 <a href="{{ path('admin_edit_event', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
@@ -35,8 +101,6 @@
                         Supprimer
                     </button>
                 </form>
-
-
             </div>
         </div>
     </div>
