@@ -2,9 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Event;
 use App\Entity\User;
+use App\Form\AdminAddEventType;
 use App\Form\AdminAddUserType;
 use App\Form\AdminEditUserType;
+use App\Form\EventFilterType;
+use App\Form\EventType;
 use App\Repository\EventRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,15 +22,36 @@ use Symfony\Bundle\SecurityBundle\Security;
 
 final class AdminController extends AbstractController
 {
-    #[Route('/admin', name: 'admin')]
-    public function index(UserRepository $userRepository, EventRepository $eventRepository): Response
+    #[Route('/admin', name: 'admin', methods: ['GET', 'POST'])]
+    public function index(UserRepository $userRepository, EventRepository $eventRepository, Request $request, EntityManagerInterface $entityManager): Response
     {
         $users = $userRepository->findAll();
+
+        // Création du formulaire de filtre
+        $form = $this->createForm(EventFilterType::class);
+        $form->handleRequest($request);
+
         $events = $eventRepository->findAll();
 
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            dump($request->request->all());
+            $organizer = $form->get('organizer')->getData();
+            if ($organizer instanceof User) {
+                $events = $eventRepository->findOneBy(['organizer' => $organizer->getId()]);
+
+                return $this->render('admin/index.html.twig', [
+                    'users' => $users,
+                    'events' => $events,
+                    'form' => $form,
+                ]);
+            }
+
+        }
         return $this->render('admin/index.html.twig', [
             'users' => $users,
             'events' => $events,
+            'form' => $form,
         ]);
     }
 
@@ -191,6 +216,36 @@ final class AdminController extends AbstractController
         return $this->render('admin/edituser.html.twig', [
             'form' => $form,
             'user' => $event,
+        ]);
+    }
+
+    #[Route('/admin/add/event', name: 'admin_add_event', methods: ['GET', 'POST'])]
+    public function addevent(EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $event = new Event();
+
+        // Créer le formulaire
+        $form = $this->createForm(AdminAddEventType::class, $event);
+        $form->handleRequest($request);
+
+        // Traitement du formulaire
+        if ($form->isSubmitted() && $form->isValid()) {
+
+
+            // Persister l'utilisateur
+            $entityManager->persist($event);
+            $entityManager->flush();
+
+            // Message de succès
+            $this->addFlash('success', 'Evènement ajouté avec succès.');
+
+            // Rediriger vers la page admin
+            return $this->redirectToRoute('admin');
+        }
+
+        // Affichage du formulaire dans la vue
+        return $this->render('admin/addevent.html.twig', [
+            'form' => $form,
         ]);
     }
 

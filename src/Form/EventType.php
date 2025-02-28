@@ -37,6 +37,10 @@ class EventType extends AbstractType
                 'label'=> 'Date et heure de fin',
                 'widget' => 'single_text'
             ])
+            ->add('openUntil', DateTimeType::class, [
+                'label'=> 'Date et heure maximale d\'inscription',
+                'widget' => 'single_text'
+            ])
             ->add('nbMaxParticipants', IntegerType::class, [
                 'label'=> 'Nombre de participants',
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Nombre de participants'],
@@ -80,7 +84,7 @@ class EventType extends AbstractType
                 'placeholder' => '--Choisir un lieu--'])
             ->add('save', SubmitType::class, [
                 'label' => 'Enregistrer',
-                'attr' => ['class' => 'btn btn-primary'],
+                'attr' => ['class' => 'btn btn-success'],
             ])
         ;
     }

@@ -11,13 +11,14 @@
                 <img src="{{ asset(event.img) }}" alt="{{ event.title }}" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
             </div>
         {% else %}
-            <img src="{{ asset('assets/images/default.jpg') }}" class="card-img-top" alt="Image par défaut">
+            <img src="{{ asset(event.getDefaultImg()) }}" alt="Image par défaut">
         {% endif %}
 
 
 
 
         <p><strong>Date :</strong> {{ event.startsAt|date('d/m/Y H:i') }} - {{ event.endsAt|date('d/m/Y H:i') }}</p>
+        <p><strong>Date max d'inscription :</strong> {{ event.openUntil|date('d/m/Y H:i') }}</p>
         <p><strong>Participants max :</strong> {{ event.nbMaxParticipants }}</p>
         <p><strong>Description :</strong> {{ event.description }}</p>
         <p><strong>Statut : </strong> {{ event.status.name }}</p>
@@ -32,11 +33,56 @@
         </ul>
 
         <strong>Participants : </strong>
-        <ul>
-            {% for p in event.participants %}
-                <li>{{ p.username ~ ' - ' ~ p.firstName ~ ' ' ~ p.lastName }}</li>
-            {% endfor %}
-        </ul>
+        <table style="border: 2px solid black">
+            <thead style="background-color: rgb(228 240 245)">
+                <tr>
+                    <th style="border: 1px solid black">Nom d'utilisateur</th>
+                    <th style="border: 1px solid black">Prénom Nom</th>
+                    <th style="border: 1px solid black">Se retirer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in event.participants %}
+                    <tr>
+                        <td style="border: 1px solid black">{{ p.username }}</td>
+                        <td style="border: 1px solid black">{{ p.firstName ~ ' ' ~ p.lastName }}</td>
+                        <td style="border: 1px solid black">
+                        {% if p.id == app.user.id %}
+                            <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Se retirer</a>
+                        {% elseif app.user.id == event.organizer.id%}
+                            <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Enlever ce participant</a>
+                        {% else %}
+                        {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot style="background-color: rgb(228 240 245)">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td style="border: 1px solid black">
+                        {% if date() > date(event.startsAt) or date() > date(event.endsAt)%}
+                            Evènement déjà passé (ou commencé)
+                        {% else %}
+                            {% if app.user in event.participants%}
+                                Déjà inscrit (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}">Se retirer?</a>)
+                            {% else %}
+                                {% if not event.openUntil %}
+                                    <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                                {% else %}
+                                    {% if date() > date(event.openUntil) %}
+                                        Inscription terminée
+                                    {% else %}
+                                        <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
 
         <strong>Lieu : </strong>
         <ul>
