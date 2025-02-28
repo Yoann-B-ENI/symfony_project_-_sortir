@@ -5,10 +5,12 @@ use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Security\AppAuthenticator;
 use App\Security\EmailVerifier;
+use App\Service\ImageManagement;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mime\Address;
@@ -31,7 +33,11 @@ class RegistrationController extends AbstractController
      * @return Response
      */
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager): Response
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager,
+                             ImageManagement $imageManagement,
+                             #[Autowire('%user_photo_dir%')] string $photoDir,
+                             #[Autowire('%user_photo_def_filename%')] string $filename,
+    ): Response
     {
         $user = new User();
 
@@ -57,10 +63,15 @@ class RegistrationController extends AbstractController
                     ->subject('Please Confirm your Email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')
             );
-
+          
+            $imageFile = $form->get('img')->getData();
+            if ($imageFile) {
+                $imagePath = $imageManagement->upload($imageFile, $photoDir, $user->getId(), $filename);
+                $user->setImg($imagePath);
+                $entityManager->flush();
+            }
            return $this-> redirectToRoute('app_standBy');
            // return $security->login($user, AppAuthenticator::class, 'main');
-
         }
 
         return $this->render('registration/register.html.twig', [
