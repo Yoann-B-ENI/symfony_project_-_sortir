@@ -37,6 +37,10 @@ class EventType extends AbstractType
                 'label'=> 'Date et heure de fin',
                 'widget' => 'single_text'
             ])
+            ->add('openUntil', DateTimeType::class, [
+                'label'=> 'Date et heure maximale d\'inscription',
+                'widget' => 'single_text'
+            ])
             ->add('nbMaxParticipants', IntegerType::class, [
                 'label'=> 'Nombre de participants',
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Nombre de participants'],
@@ -49,8 +53,8 @@ class EventType extends AbstractType
                 'constraints' => [
                     new File([
                         'maxSize' => '5M',
-                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, PNG, WEBP)',
+                        'mimeTypes' => ['image/jpeg','image/jpg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, JPEG, PNG, WEBP)',
                     ])
                     ],
             ])

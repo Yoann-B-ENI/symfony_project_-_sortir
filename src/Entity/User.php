@@ -8,13 +8,14 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\PasswordStrength;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'Il existe déjà un compte associé à cet email.')]
 #[UniqueEntity(fields: ['username'], message: 'Ce nom d\'utilisateur est déjà pris.')]
+#[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -23,7 +24,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(message: 'L\'email est obligatoire.')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un Email')]
+    #[Assert\Email(message: 'Cet Email n\'est pas valide')]
     #[Assert\Regex(
         pattern: '/^[a-z0-9._%+-]+@campus-eni\.fr$/i',
         message: 'L\'email doit être une adresse campus (ex: name@campus-eni.fr).'
@@ -34,10 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Assert\Count(
-        min: 1,
-        minMessage: 'Un rôle minimum est requis.'
-    )]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un role')]
     private array $roles = [];
 
     /**
@@ -47,17 +46,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Le nom est requis.')]
-    #[Assert\Length(max: 50)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un Nom')]
+    #[Assert\Length(max: 50,maxMessage: 'Maximum 50 caractères')]
     #[Assert\Regex(
         pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
         message: 'Le nom doit uniquement contenir des lettres, des espaces, et des tirets.'
     )]
     private ?string $lastname = null;
-
+    
     #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Le prénom est requis.')]
-    #[Assert\Length(max: 50)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un Prénom')]
+    #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères')]
     #[Assert\Regex(
         pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
         message: 'Le prénom doit uniquement contenir des lettres, des espaces, et des tirets.'
@@ -65,7 +64,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $firstname = null;
 
     #[ORM\Column(length: 20)]
-    #[Assert\NotBlank(message: 'Le numéro de téléphone est obligatoire.')]
+    #[Assert\NotBlank(message: 'Le numéro de téléphone n\'est pas valide')]
     #[Assert\Length(
         max: 10,
         maxMessage: 'Le numéro de téléphone ne peut pas contenir plus de {{ limit }} caractères.'
@@ -77,7 +76,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $telephone = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Assert\Length(max: 50)]
+    #[Assert\Length(max: 50, maxMessage: 'Maximum 50 caractères')]
     #[Assert\NotBlank(message: 'Veuillez renseigner un pseudo.')]
     private ?string $username = null;
 
@@ -92,6 +91,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotNull(message: 'Un campus doit être attribué.')]
     private ?Campus $campus = null;
 
+    public function __construct(){
+        $this->roles = ['ROLE_USER'];
+    }
     public function getId(): ?int
     {
         return $this->id;
@@ -136,12 +138,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @param list<string> $roles
      */
+
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
 
         return $this;
     }
+
 
     /**
      * @see PasswordAuthenticatedUserInterface
