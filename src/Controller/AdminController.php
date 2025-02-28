@@ -218,8 +218,10 @@ final class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             // Si un organisateur a changé, on met à jour le campus
             $organizer = $event->getOrganizer();
-            if ($organizer && $organizer->getCampus()) {
-                $event->setCampus($organizer->getCampus());
+            if ($organizer) {
+                if ($organizer->getCampus()) {
+                    $event->setCampus($organizer->getCampus());
+                }
             }
 
             // Persister les changements
@@ -234,7 +236,7 @@ final class AdminController extends AbstractController
 
         // Affichage du formulaire dans la vue
         return $this->render('admin/editevent.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
             'event' => $event,
             'users' => $users,
             'selectedOrganizer' => $selectedOrganizer,
