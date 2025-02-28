@@ -63,7 +63,7 @@ class RegistrationController extends AbstractController
                     ->subject('Please Confirm your Email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')
             );
-          
+         
             $imageFile = $form->get('img')->getData();
             if ($imageFile) {
                 $imagePath = $imageManagement->upload($imageFile, $photoDir, $user->getId(), $filename);
@@ -72,6 +72,7 @@ class RegistrationController extends AbstractController
             }
            return $this-> redirectToRoute('app_standBy');
            // return $security->login($user, AppAuthenticator::class, 'main');
+
         }
 
         return $this->render('registration/register.html.twig', [
