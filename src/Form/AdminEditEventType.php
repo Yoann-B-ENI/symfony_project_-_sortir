@@ -2,10 +2,12 @@
 
 namespace App\Form;
 
+use App\Entity\Campus;
 use App\Entity\Category;
 use App\Entity\Event;
 use App\Entity\Location;
 use App\Entity\Status;
+use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -20,11 +22,27 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Validator\Constraints\File;
 
 
-class EventType extends AbstractType
+class AdminEditEventType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('organizer', EntityType::class, [
+                'class' => User::class,
+                'choice_label' => function (User $user) {
+                    return $user->getUsername() . ' (' . $user->getEmail() . ')';
+                },
+                'choice_attr' => function (User $user) {
+                    return ['data-campus' => $user->getCampus() ? $user->getCampus()->getName() : 'Aucun campus'];
+                },
+                'placeholder' => 'Sélectionner un organisateur',
+            ])
+            ->add('campus', TextType::class, [
+                'mapped' => false,
+                'disabled' => true,
+                'attr' => ['class' => 'form-control'],
+                'label' => 'Campus de l\'organisateur'
+            ])
             ->add('title', TextType::class, [
                 'label' => 'Titre',
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Titre'],
@@ -35,10 +53,6 @@ class EventType extends AbstractType
             ])
             ->add('endsAt', DateTimeType::class, [
                 'label'=> 'Date et heure de fin',
-                'widget' => 'single_text'
-            ])
-            ->add('openUntil', DateTimeType::class, [
-                'label'=> 'Date et heure maximale d\'inscription',
                 'widget' => 'single_text'
             ])
             ->add('nbMaxParticipants', IntegerType::class, [
@@ -53,10 +67,10 @@ class EventType extends AbstractType
                 'constraints' => [
                     new File([
                         'maxSize' => '5M',
-                        'mimeTypes' => ['image/jpeg','image/jpg', 'image/png', 'image/webp'],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, JPEG, PNG, WEBP)',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPG, PNG, WEBP)',
                     ])
-                    ],
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
@@ -82,10 +96,6 @@ class EventType extends AbstractType
                 'choice_label' => 'name',
                 'required' => true,
                 'placeholder' => '--Choisir un lieu--'])
-            ->add('save', SubmitType::class, [
-                'label' => 'Enregistrer',
-                'attr' => ['class' => 'btn btn-success'],
-            ])
         ;
     }
 

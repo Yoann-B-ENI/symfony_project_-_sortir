@@ -62,6 +62,9 @@ class Event
     #[ORM\JoinColumn(nullable: false)]
     private ?Location $location = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $openUntil = null;
+
     public function __construct()
     {
         $this->participants = new ArrayCollection();
@@ -241,6 +244,18 @@ class Event
     public function setLocation(?Location $location): static
     {
         $this->location = $location;
+
+        return $this;
+    }
+
+    public function getOpenUntil(): ?\DateTimeInterface
+    {
+        return $this->openUntil;
+    }
+
+    public function setOpenUntil(?\DateTimeInterface $openUntil): static
+    {
+        $this->openUntil = $openUntil;
 
         return $this;
     }
