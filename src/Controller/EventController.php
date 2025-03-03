@@ -27,34 +27,28 @@ final class EventController extends AbstractController
     {
 
         $form = $this->createForm(EventFilterType::class , null, [
-            'method' => 'GET', // Spécifier explicitement que c'est un formulaire GET
+            'method' => 'GET',
         ]);
         $form->handleRequest($request);
 
+        $campus = $form->get('campus')->getData();
+        $organizer = $form->get('organizer')->getData();
+        $category = $form->get('category')->getData();
+        $status = $form->get('status')->getData();
+
+        $campusId = $campus ? $campus->getId() : null;
+        $organizerId = $organizer ? $organizer->getId() : null;
+        $categoryId = $category ? $category->getId() : null;
+        $statusId = $status ? $status->getId() : null;
+        $userId = $this->getUser() ? $this->getUser()->getId() : null;
+
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $campus = $form->get('campus')->getData();
-            $organizer = $form->get('organizer')->getData();
-            $category = $form->get('category')->getData();
-            $status = $form->get('status')->getData();
 
-            $campusId = $campus ? $campus->getId() : null;
-            $organizerId = $organizer ? $organizer->getId() : null;
-            $categoryId = $category ? $category->getId() : null;
-            $statusId = $status ? $status->getId() : null;
-            $userId = $this->getUser() ? $this->getUser()->getId() : null;
-
-
-            // Si aucun filtre n'est sélectionné, afficher tous les événements
-//            if (!$campusId && !$organizerId && !$categoryId && !$statusId) {
-//                $eventsList = $entityManager->getRepository(Event::class)->findAll();
-//            } else {
-                // Utiliser la méthode avec les deux filtres
                 $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-//            }
+
         } else {
-            // Par défaut, afficher tous les événements
-            $eventsList = $entityManager->getRepository(Event::class)->findAll();
+            $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
         }
 
         return $this->render('event/index.html.twig', [
@@ -81,6 +75,7 @@ final class EventController extends AbstractController
             $event->setTitle($censuror->purify($event->getTitle()));
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
+
 
             $entityManager->persist($event);
             $entityManager->flush();
