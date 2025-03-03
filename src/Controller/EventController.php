@@ -46,12 +46,12 @@ final class EventController extends AbstractController
 
 
             // Si aucun filtre n'est sélectionné, afficher tous les événements
-            if (!$campusId && !$organizerId && !$categoryId && !$statusId) {
-                $eventsList = $entityManager->getRepository(Event::class)->findAll();
-            } else {
+//            if (!$campusId && !$organizerId && !$categoryId && !$statusId) {
+//                $eventsList = $entityManager->getRepository(Event::class)->findAll();
+//            } else {
                 // Utiliser la méthode avec les deux filtres
                 $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-            }
+//            }
         } else {
             // Par défaut, afficher tous les événements
             $eventsList = $entityManager->getRepository(Event::class)->findAll();
