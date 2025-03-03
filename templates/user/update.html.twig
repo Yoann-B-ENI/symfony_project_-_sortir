@@ -1,12 +1,11 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-
     <div class="container min-vh-100 d-flex align-items-center justify-content-center py-5">
     <div class="bg-navy text-navy-light p-4 registration-form" style="max-width: 800px; width: 50%;">
         <h2 class="mb-4 text-center">Modifiez votre profil</h2>
         {{ form_start(userForm, {'attr': {'novalidate': 'novalidate', 'class': 'row g-3'}}) }}
-        <!--TODO: gestion du campus-->
+
         <p class="card-text">Campus de {{ app.user.campus.name }}</p>
         <div class="col-12 mb-3" hidden="hidden">
             {{ form_label(userForm.campus, null, {'label_attr': {'class': 'form-label'}}) }}
@@ -34,6 +33,14 @@
         <div class="col-md-12 mb-3">
             {{ form_label(userForm.img, null, {'label_attr': {'class': 'form-label'}}) }}
             {{ form_widget(userForm.img, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="col-md-12 mb-3">
+            {{ form_label(userForm.currentPassword, 'Mot de passe actuel',{'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(userForm.currentPassword, {'attr': {'class': 'form-control'}}) }}
+        </div>
+        <div class="col-md-12 mb-3">
+            {{ form_label(userForm.newPassword, 'nouveau mot de passe',{'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(userForm.newPassword, {'attr': {'class': 'form-control'}}) }}
         </div>
         <button type="submit" class="btn btn-outline-dark"
                 onclick="return confirm('Etes vous sûr de vouloir modifier votre profil ?');">Enregistrer
