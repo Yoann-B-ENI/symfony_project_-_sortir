@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lieux d'évènements{% endblock %}
+
+{% block body %}
+
+    {% if locations is empty %}
+        <div class="alert alert-info text-center">
+            <p>Aucun lieu n'existe.</p>
+        </div>
+    {% else %}
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <strong>Liste des lieux : </strong>
+            <table style="border: 2px solid black">
+                <thead style="background-color: rgb(228 240 245)">
+                <tr>
+                    <th style="border: 1px solid black">Nom du lieu</th>
+                    <th style="border: 1px solid black">Adresse</th>
+                    <th style="border: 1px solid black">Ville</th>
+                    <th style="border: 1px solid black">Géoloc (lat, lon)</th>
+                    <th style="border: 1px solid black">Détails</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for l in locations %}
+                    <tr>
+                        <td style="border: 1px solid black">{{ l.name }}</td>
+                        <td style="border: 1px solid black">{{ l.roadNumber ~ ' ' ~ l.roadName }}</td>
+                        <td style="border: 1px solid black">{{ l.zipCode ~ ' ' ~ l.townName }}</td>
+                        <td style="border: 1px solid black">{{ l.latitude ~ ', ' ~ l.longitude }}</td>
+                        <td style="border: 1px solid black">{{ l.extraInfo }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot style="background-color: rgb(228 240 245)">
+                </tfoot>
+            </table>
+        </div>
+    {% endif %}
+
+    {{ form(locForm) }}
+
+{% endblock %}

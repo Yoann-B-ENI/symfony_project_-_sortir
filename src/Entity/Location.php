@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\LocationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LocationRepository::class)]
 class Location
@@ -15,18 +16,35 @@ class Location
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\Length(max: 100, maxMessage: 'Maximum 100 caractères')]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un Nom de lieu')]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ -_]+$/',
+        message: 'Le nom du lieu doit uniquement contenir des lettres, des espaces, et des tirets.'
+    )]
     private ?string $name = null;
 
     #[ORM\Column(length: 5, nullable: true)]
+    #[Assert\Length(max: 5, maxMessage: 'Maximum 5 caractères')]
     private ?string $roadnumber = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $roadname = null;
 
     #[ORM\Column(length: 5)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un Code postal')]
+    #[Assert\Regex(
+        pattern: '/^[0-9]{5}(?:-[0-9]{4})?$/',
+        message: 'Le code postal doit être composé de 5 chiffres.'
+    )]
     private ?string $zipcode = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner un Nom de ville')]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-ZÀ-ÿ -]+$/',
+        message: 'Le nom de ville doit uniquement contenir des lettres, des espaces, et des tirets.'
+    )]
     private ?string $townname = null;
 
     #[ORM\Column(type: Types::FLOAT)]
