@@ -9,7 +9,7 @@
                     {% if app.user.img %}
                         <img src="{{ asset(app.user.img) }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
                     {% else %}
-                        <img src="{{ asset('uploads/default_profile.jpg') }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
+                        <img src="{{ asset(app.user.getDefaultImg()) }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
                     {% endif %}
                 </div>
                 <div class="col-md-8">
