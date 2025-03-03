@@ -48,9 +48,24 @@ class Location
     private ?string $townname = null;
 
     #[ORM\Column(type: Types::FLOAT)]
+    #[Assert\Range(
+        min: -6,
+        max: 10,
+        notInRangeMessage: 'Longitude doit être entre {{ min }} et {{ max }}° Est',
+    )]
     private ?string $longitude = null;
 
+    // For reference, approx. bounding box of metropolitan france
+    // 41.395564261621374, 9.622656317933236
+    // 42.522508740823724, -5.271463860069315
+    // 51.13108966622337, -4.957903435269262
+    // 51.11468909409604, 8.290024512533009
     #[ORM\Column(type: Types::FLOAT)]
+    #[Assert\Range(
+        min: 40,
+        max: 52,
+        notInRangeMessage: 'Latitude doit être entre {{ min }} et {{ max }}° Nord',
+    )]
     private ?string $latitude = null;
 
     #[ORM\Column(length: 255, nullable: true)]
