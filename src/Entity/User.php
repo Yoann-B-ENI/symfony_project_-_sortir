@@ -273,6 +273,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function addRole(string $role): self
+    {
+        if (!in_array($role, $this->roles)) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
+    }
+  
     /**
      * @return Collection<int, NotifMessage>
      */
@@ -290,10 +299,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function removeRole(string $role): self
+    {
+        $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
+        // Réindexer les clés après avoir filtré
+        $this->roles = array_values($this->roles);
+
+        return $this;
+    }
+
     public function removeMessage(NotifMessage $message): static
     {
         $this->messages->removeElement($message);
 
         return $this;
     }
+  
+  
 }

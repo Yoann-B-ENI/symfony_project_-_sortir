@@ -12,3 +12,7 @@ admin_import_users_upload:
     path: /admin/import-users/upload
     controller: App\Controller\AdminController::importUsers
     methods: [POST]
+
+banned_page:
+    path: /ban
+    controller: App\Controller\AdminController::banned

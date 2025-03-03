@@ -115,7 +115,7 @@ final class AdminController extends AbstractController
         // Traitement du formulaire
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Utilisateur modifié avec succès.');
+            $this->addFlash('warning', 'Utilisateur modifié avec succès.');
 
             return $this->redirectToRoute('admin');
         }
@@ -216,19 +216,13 @@ final class AdminController extends AbstractController
             $participants = $event->getParticipants();
         }
 
-        // Vérification de la limite de participants
-        $currentParticipantsCount = count($event->getParticipants());
-        if ($currentParticipantsCount >= $event->getNbMaxParticipants()) {
-            // Ajout d'un message pour informer l'admin que la limite est atteinte
-            $this->addFlash('error', 'Le nombre maximum de participants a été atteint.');
-        }
-
         return $this->render('admin/detailsevent.html.twig', [
             'event' => $event,
             'users' => $nonParticipants, // Passer les utilisateurs non participants
             'participants' => $participants, // Passer les participants filtrés
         ]);
     }
+
 
 
     #[Route('/admin/delete/event/{id}', name: 'admin_delete_event', methods: ['POST'])]
@@ -242,7 +236,7 @@ final class AdminController extends AbstractController
 
         $entityManager->remove($event);
         $entityManager->flush();
-        $this->addFlash('success', 'Evènement supprimé avec succès.');
+        $this->addFlash('error', 'Evènement supprimé avec succès.');
 
         return $this->redirectToRoute('admin');
 
@@ -281,7 +275,7 @@ final class AdminController extends AbstractController
             $entityManager->flush();
 
             // Message de succès
-            $this->addFlash('success', 'Evènement modifié avec succès.');
+            $this->addFlash('warning', 'Evènement modifié avec succès.');
 
             // Rediriger vers la page admin
             return $this->redirectToRoute('admin');
@@ -366,12 +360,19 @@ final class AdminController extends AbstractController
         $event = $em->getRepository(Event::class)->find($eventId);
         $user = $em->getRepository(User::class)->find($userId);
 
-
+        // Vérification si l'événement et l'utilisateur existent
         if (!$event || !$user) {
             $this->addFlash('error', 'Événement ou utilisateur introuvable.');
             return $this->redirectToRoute('admin_details_event', ['id' => $eventId]);
         }
 
+        // Vérification si le nombre maximal de participants est atteint
+        if (count($event->getParticipants()) >= $event->getNbMaxParticipants()) {
+            $this->addFlash('info', 'Le nombre maximal de participants a été atteint pour cet événement (Le participant n\'a pas été ajouté).');
+            return $this->redirectToRoute('admin_details_event', ['id' => $eventId]);
+        }
+
+        // Vérification si l'utilisateur participe déjà à l'événement
         if (!$event->getParticipants()->contains($user)) {
             $event->addParticipant($user);
             $em->flush();
@@ -382,7 +383,6 @@ final class AdminController extends AbstractController
 
         return $this->redirectToRoute('admin_details_event', [
             'id' => $eventId,
-
         ]);
     }
 
@@ -400,7 +400,7 @@ final class AdminController extends AbstractController
         if ($event->getParticipants()->contains($user)) {
             $event->removeParticipant($user);
             $em->flush();
-            $this->addFlash('success', 'Participant retiré avec succès.');
+            $this->addFlash('error', 'Participant retiré avec succès.');
         } else {
             $this->addFlash('warning', 'Cet utilisateur ne participe pas à l\'événement.');
         }
@@ -465,6 +465,33 @@ final class AdminController extends AbstractController
             $this->addFlash('success', 'Les utilisateurs ont été importés avec succès.');
         }
 
+        return $this->redirectToRoute('admin');
+    }
+
+    #[Route('/banni', name: 'banned_page')]
+    public function banned(): Response
+    {
+        return $this->render('admin/banned.html.twig');
+    }
+
+    #[Route('/admin/user/{id}/ban', name: 'admin_ban_user', methods: ['POST'])]
+    public function banUser(User $user, EntityManagerInterface $em, Request $request): Response
+    {
+        // Vérifiez si l'utilisateur a le rôle "ROLE_BAN"
+        if (in_array('ROLE_BAN', $user->getRoles())) {
+            // Si oui, retirez le rôle "ROLE_BAN"
+            $user->removeRole('ROLE_BAN');
+            $this->addFlash('info', 'Utilisateur débanni avec succès');
+        } else {
+            // Sinon, ajoutez le rôle "ROLE_BAN"
+            $user->addRole('ROLE_BAN');
+            $this->addFlash('info', 'Utilisateur banni avec succès');
+        }
+
+        // Enregistrez les modifications
+        $em->flush();
+
+        // Redirigez vers la liste des utilisateurs
         return $this->redirectToRoute('admin');
     }
 
