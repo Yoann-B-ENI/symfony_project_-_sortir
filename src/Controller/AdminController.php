@@ -415,28 +415,48 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/import-users/upload', name: 'admin_import_users_upload', methods: ['POST'])]
-    public function importUsers(Request $request, CampusRepository $campusRepository, EntityManagerInterface $entityManager): Response
+    public function importUsers(Request $request, CampusRepository $campusRepository, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
         $file = $request->files->get('csv_file');
 
         if ($file) {
             $handle = fopen($file->getRealPath(), 'r');
-            $campus = $campusRepository->findAll();
-            while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+
+            // Ignorer la première ligne (en-têtes)
+            fgetcsv($handle, 1000, ',');
+
+            while (($data = fgetcsv($handle, 1000, ';')) !== false) {
+                // Récupération du campus en fonction de son ID
+                $campusId = (int) $data[0];  // Convertir en entier pour éviter les erreurs
+                $campus = $campusRepository->find($campusId);
+
+                if (!$campus) {
+                    throw new \Exception("Le campus avec l'ID '{$campusId}' est introuvable.");
+                }
 
                 $user = new User();
                 $user
-                    ->setCampus($data[0])
+                    ->setCampus($campus)
                     ->setEmail($data[1])
                     ->setRoles(explode(',', $data[2]))
-                    ->setPassword($this->passwordHasher->hash($data[3])) // Utilise le service PasswordHasherInterface pour hasher le mot de passe
+                    ->setPassword($passwordHasher->hashPassword($user, $data[3])) // Hash du mot de passe
                     ->setLastname($data[4])
                     ->setFirstname($data[5])
                     ->setTelephone($data[6])
                     ->setUsername($data[7]);
 
-                // Persiste l'utilisateur
-                $entityManager->persist($user);
+                // Validation de l'utilisateur
+                $errors = $validator->validate($user);
+
+                if (count($errors) > 0) {
+                    // Si des erreurs de validation existent, on les ajoute aux messages flash
+                    foreach ($errors as $error) {
+                        $this->addFlash('error', $error->getMessage());
+                    }
+                } else {
+                    // Si l'utilisateur est valide, persiste l'entité dans la base de données
+                    $entityManager->persist($user);
+                }
             }
 
             fclose($handle);
