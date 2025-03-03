@@ -101,6 +101,11 @@ class EventRepository extends ServiceEntityRepository
                     $qb->andWhere('1 = 0');
                 }
             }
+        }else{
+            $status_brouillon =  $this->getEntityManager()->getRepository(Status::class)->findOneBy(['name' =>'Brouillon']);
+            $qb->andWhere('(e.status = :brouillonId and e.organizer = :userId) or (e.status > :brouillonId)')
+                ->setParameter('brouillonId', $status_brouillon->getId()) // status_brouillon.id
+                ->setParameter('userId', $userId);
         }
 
 
