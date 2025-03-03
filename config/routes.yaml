@@ -3,3 +3,12 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+admin_import_users:
+    path: /admin/import-users
+    controller: App\Controller\AdminController::importUsersForm
+
+admin_import_users_upload:
+    path: /admin/import-users/upload
+    controller: App\Controller\AdminController::importUsers
+    methods: [POST]

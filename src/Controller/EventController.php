@@ -46,6 +46,7 @@ final class EventController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
 
                 $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+
         } else {
             $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
         }

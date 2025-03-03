@@ -10,10 +10,6 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     {% endblock %}
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
-
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
         <!-- Ajouter JS de Select2 -->
@@ -23,7 +19,20 @@
 <body>
 {% include 'partials/header.html.twig' %}
 <main>
-    {% block body %}{% endblock %}
+
+    {# Affichage des messages flashs - success, error, warning, etc. #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% block body %}
+
+
+    {% endblock %}
 </main>
 {% include 'partials/footer.html.twig' %}
 </body>

@@ -71,7 +71,6 @@ class RegistrationController extends AbstractController
                 $entityManager->flush();
             }
            return $this-> redirectToRoute('app_standBy');
-           //return $security->login($user, AppAuthenticator::class, 'main');
 
         }
 
@@ -89,9 +88,6 @@ class RegistrationController extends AbstractController
     public function verifyUserEmail(Request $request, TranslatorInterface $translator, EntityManagerInterface $em): Response
     {
 
-        //$this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
-        // validate email confirmation link, sets User::isVerified=true and persists
         try {
             $id = $request->query->get('id');
 
@@ -111,9 +107,6 @@ class RegistrationController extends AbstractController
                 }
             }
             $this->emailVerifier->handleEmailConfirmation($request, $user);
-//            $user->setIsVerified(true);
-//            $em->persist($user);
-//            $em->flush();
             $this->addFlash('success', 'Votre adresse email a été vérifiée.');
 
             return $this->redirectToRoute('app_login');
@@ -124,10 +117,6 @@ class RegistrationController extends AbstractController
             return $this->redirectToRoute('app_register');
         }
 
-//        // @TODO Change the redirect on success and handle or remove the flash message in your templates
-//        $this->addFlash('success', 'Your email address has been verified.');
-//
-//        return $this->redirectToRoute('user_profile');
     }
     #[Route('/standBy', name: 'app_standBy')]
     public function redirectStandBy(){
