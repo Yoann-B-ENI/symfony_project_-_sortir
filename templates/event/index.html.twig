@@ -6,26 +6,65 @@
     <div class="container mt-4">
         <h1 class="mb-4 text-center"> Liste des événements</h1>
 
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtrer les événements</h5>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'method': 'GET'}) }}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        {{ form_label(form.campus, 'Campus') }}
+                        {{ form_widget(form.campus, {'attr': {'class': 'form-select'}}) }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ form_label(form.organizer, 'Organisateur') }}
+                        {{ form_widget(form.organizer, {'attr': {'class': 'form-select'}}) }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ form_label(form.category, 'Catégories') }}
+                        {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ form_label(form.status, 'Statuts') }}
+                        {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary w-100'}}) }}
+                    </div>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+
         {% if eventsList is empty %}
             <div class="alert alert-info text-center">
                 <p>Aucune sortie de prévue pour le moment.</p>
             </div>
         {% else %}
+
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 {% for event in eventsList %}
                     <div class="col">
                         <div class="card shadow-sm h-100">
                             {% if event.img %}
-                                <img src="{{ asset(event.img) }}" class="card-img-top" alt="{{ event.title }}">
+                                <img src="{{ asset(event.img) }}" class="card-img-top" style="height: 200px; object-fit: cover;"  alt="{{ event.title }}">
                             {% else %}
-                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" alt="Image par défaut">
+                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" style="height: 200px; object-fit: cover;"  alt="Image par défaut">
                             {% endif %}
 
 
                             <div class="card-body">
                                 <h5 class="card-title">{{ event.title }}</h5>
                                 <p class="text-muted">
-                                    <i class="bi bi-calendar-event"></i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                    <p> par :  {{ event.organizer.username }} </p>
+                                </p>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"> Début de l'évènement : </i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                </p>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"> Date limite inscription : </i> {{ event.openUntil|date('d/m/Y H:i') }}
                                 </p>
                                 <p class="card-text">
                                     {{ event.description|length > 50 ? event.description|slice(0, 50) ~ '...' : event.description }}
@@ -33,11 +72,13 @@
                             </div>
                             <div class="card-footer text-center">
                                 <a href="{{ path('event_details', {'id': event.id}) }}" class="btn btn-primary btn-sm">Voir</a>
+                                {% if currentUser and event.organizer.id == currentUser.id %}
                                 <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
                                 <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
                                 </form>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

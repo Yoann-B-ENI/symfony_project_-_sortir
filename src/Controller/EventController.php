@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\User;
+use App\Form\EventFilterType;
 use App\Form\EventType;
 use App\Service\Censuror;
 
@@ -22,11 +23,38 @@ final class EventController extends AbstractController
 {
 
     #[Route('/event/', name: 'event')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(Request $request,  EntityManagerInterface $entityManager): Response
     {
-        $eventsList = $entityManager->getRepository(Event::class)->findAll();
+
+        $form = $this->createForm(EventFilterType::class , null, [
+            'method' => 'GET',
+        ]);
+        $form->handleRequest($request);
+
+        $campus = $form->get('campus')->getData();
+        $organizer = $form->get('organizer')->getData();
+        $category = $form->get('category')->getData();
+        $status = $form->get('status')->getData();
+
+        $campusId = $campus ? $campus->getId() : null;
+        $organizerId = $organizer ? $organizer->getId() : null;
+        $categoryId = $category ? $category->getId() : null;
+        $statusId = $status ? $status->getId() : null;
+        $userId = $this->getUser() ? $this->getUser()->getId() : null;
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+
+        } else {
+            $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+        }
+
         return $this->render('event/index.html.twig', [
             'eventsList' => $eventsList,
+            'form' => $form,
+            'currentUser' => $this->getUser(),
         ]);
     }
 
@@ -47,6 +75,7 @@ final class EventController extends AbstractController
             $event->setTitle($censuror->purify($event->getTitle()));
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
+
 
             $entityManager->persist($event);
             $entityManager->flush();
@@ -81,6 +110,11 @@ final class EventController extends AbstractController
         #[Autowire('%event_photo_def_filename%')] string $filename,
         ImageManagement $imageManagement,
     ): Response {
+
+        if ($this->getUser() !== $event->getOrganizer()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cet événement.');
+        }
+
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
@@ -91,14 +125,7 @@ final class EventController extends AbstractController
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
 
-           /* if ($imageFile) {
-                // uploads/events -> uploads/events/5
-                $eventPhotoDir = $photoDir . "/" . $event->getId();
-                // cover_img -> cover_img.jpg/png/...
-                $filename = $filename . '.' . $imageFile->guessExtension();
-                $event->setImg($filename);
-                $imageFile->move($eventPhotoDir, $filename);
-            } */
+
             if ($imageFile) {
                 $newImagePath = $imageManagement->updateImage(
                     $event->getImg(),  // L'ancienne image
@@ -131,9 +158,11 @@ final class EventController extends AbstractController
 
     ): Response
     {
+        if ($this->getUser() !== $event->getOrganizer()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à supprimer cet événement.');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
-
-
 
             $imageManagement->deleteImage($photoDir, $event->getId());
             $entityManager->remove($event);
@@ -149,6 +178,7 @@ final class EventController extends AbstractController
         // database call in parameter name
         return $this->render('event/details.html.twig', [
             'event' => $event,
+            'currentUser' => $this->getUser(),
         ]);
     }
 

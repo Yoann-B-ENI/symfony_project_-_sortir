@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 class Event
@@ -17,25 +18,41 @@ class Event
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Le titre ne peut pas être vide")]
+    #[Assert\Length(max: 255, maxMessage: "Le titre ne peut pas dépasser {{ limit }} caractères")]
     private ?string $title = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "La date de début est obligatoire")]
+    #[Assert\Type(\DateTimeImmutable::class, message : "Format de date invalide")]
+    #[Assert\GreaterThan(value: "now", message : "la date de début ne peut être que dans le futur" )]
     private ?\DateTimeImmutable $startsAt = null;
 
+
     #[ORM\Column]
+    #[Assert\NotBlank(message: "La date de fin est obligatoire.")]
+    #[Assert\GreaterThan(propertyPath: "startsAt", message: "La date de fin doit être après la date de début.")]
     private ?\DateTimeImmutable $endsAt = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: "Le nombre maximum de participants est requis.")]
+    #[Assert\Positive(message: "Le nombre de participants doit être un nombre positif.")]
     private ?int $nbMaxParticipants = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $img = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: "La description ne peut pas être vide.")]
+    #[Assert\Length(
+        min: 10,
+        minMessage: "La description doit contenir au moins {{ limit }} caractères."
+    )]
     private ?string $description = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Le statut est obligatoire.")]
     private ?Status $status = null;
 
     #[ORM\ManyToOne]
@@ -55,7 +72,8 @@ class Event
     /**
      * @var Collection<int, Category>
      */
-    #[ORM\ManyToMany(targetEntity: Category::class)]
+    #[ORM\ManyToMany(targetEntity: Category::class, cascade: ["persist"])]
+    #[Assert\Count(min: 1, minMessage: "Vous devez sélectionner au moins une catégorie.")]
     private Collection $categories;
 
     #[ORM\ManyToOne]

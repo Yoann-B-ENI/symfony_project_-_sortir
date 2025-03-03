@@ -35,5 +35,11 @@
     <button class="btn btn-lg btn-primary" type="submit">
         Sign in
     </button>
+    {% if verification_message is defined and verification_message %}
+        <div class="alert alert-warning">
+            {{ verification_message }}
+        </div>
+    {% endif %}
+
 </form>
 {% endblock %}

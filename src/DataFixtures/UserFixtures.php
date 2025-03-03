@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Campus;
+use App\Entity\NotifMessage;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -110,7 +111,8 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setTelephone('0645678901')
             ->setUsername('Amélie C')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
-            ->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+            ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
+            ->addMessage($this->getReference("notif_test_amélie", NotifMessage::class))
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
@@ -123,6 +125,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return [CampusFixtures::class];
+        return [CampusFixtures::class,
+            NotifMessageFixtures::class];
     }
 }
