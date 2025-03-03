@@ -15,19 +15,19 @@
                 {{ form_start(form, {'method': 'GET'}) }}
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
-                        {{ form_label(form.campus) }}
+                        {{ form_label(form.campus, 'Campus') }}
                         {{ form_widget(form.campus, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-5">
-                        {{ form_label(form.organizer) }}
+                        {{ form_label(form.organizer, 'Organisateur') }}
                         {{ form_widget(form.organizer, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-5">
-                        {{ form_label(form.category) }}
+                        {{ form_label(form.category, 'Catégories') }}
                         {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-5">
-                        {{ form_label(form.status) }}
+                        {{ form_label(form.status, 'Statuts') }}
                         {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-2">
@@ -49,16 +49,22 @@
                     <div class="col">
                         <div class="card shadow-sm h-100">
                             {% if event.img %}
-                                <img src="{{ asset(event.img) }}" class="card-img-top" alt="{{ event.title }}">
+                                <img src="{{ asset(event.img) }}" class="card-img-top" style="height: 200px; object-fit: cover;"  alt="{{ event.title }}">
                             {% else %}
-                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" alt="Image par défaut">
+                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" style="height: 200px; object-fit: cover;"  alt="Image par défaut">
                             {% endif %}
 
 
                             <div class="card-body">
                                 <h5 class="card-title">{{ event.title }}</h5>
                                 <p class="text-muted">
-                                    <i class="bi bi-calendar-event"></i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                    <p> par :  {{ event.organizer.username }} </p>
+                                </p>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"> Début de l'évènement : </i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                </p>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"> Date limite inscription : </i> {{ event.openUntil|date('d/m/Y H:i') }}
                                 </p>
                                 <p class="card-text">
                                     {{ event.description|length > 50 ? event.description|slice(0, 50) ~ '...' : event.description }}

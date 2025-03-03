@@ -7,8 +7,10 @@ use App\Form\UserType;
 use App\Service\ImageManagement;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -23,20 +25,37 @@ final class UserController extends AbstractController
             'title' => 'Profile',
         ]);
     }
-
     //modification profil utilisateur
     #[Route('/{id}/update', name: 'update', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
-    public function update(User $user, Request $request, EntityManagerInterface $em,
+    public function update(User $user,  Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $em,
     #[Autowire('%user_photo_dir%')] string $photoDir,
         #[Autowire('%user_photo_def_filename%')] string $filename,
         ImageManagement $imageManagement,
-
     ): Response
     {
-
         $userForm = $this->createForm(UserType::class, $user);
         $userForm->handleRequest($request);
+
+
+
+
         if ($userForm->isSubmitted()) {
+            $currentPassword = $userForm->get('currentPassword')->getData();
+            $newPassword = $userForm->get('newPassword')->getData();
+            if ($newPassword) {
+                if (!$currentPassword) {
+                    $this->addFlash('error', "Veuillez entrer votre mot de passe actuel pour le mettre à jour");
+                    return $this->redirectToRoute('user_update', ['id' => $user->getId()]);
+                } elseif (!$userPasswordHasher->isPasswordValid($user, $currentPassword)) {
+                    $this->addFlash('error', "Le mot de passe actuel est incorrect.");
+                    return $this->redirectToRoute('user_update', ['id' => $user->getId()]);
+                } else {
+                    $hashedPassword = $userPasswordHasher->hashPassword($user, $newPassword);
+                    $user->setPassword($hashedPassword);
+                    $this->addFlash('succes', 'Mot de passe mis à jour avec succès');
+                }
+            }
+
             $imageFile = $userForm->get('img')->getData();
             if ($imageFile) {
                 $newImagePath = $imageManagement->updateImage(
@@ -49,6 +68,7 @@ final class UserController extends AbstractController
 
                 $user->setImg($newImagePath);
             }
+            $em->persist($user);
             $em->flush();
             $this->addFlash('succes', 'Le profil a bien été modifié');
             return $this->redirectToRoute('user_profile', ['id' => $user->getId()]);

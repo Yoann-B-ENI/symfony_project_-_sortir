@@ -43,13 +43,13 @@ class AdminEditUserType extends AbstractType
                 'required' => false
             ])
             ->add('roles', ChoiceType::class, [
-                'label' => 'Rôle',
                 'choices' => [
-                    'Utilisateur' => 'ROLE_USER',
                     'Administrateur' => 'ROLE_ADMIN',
+                    'Utilisateur' => 'ROLE_USER',
+                    'Banni' => 'ROLE_BAN',
                 ],
-                'expanded' => false, // false = liste déroulante (select)
-                'multiple' => true,  // true = permet plusieurs rôles (obligatoire pour Symfony)
+                'multiple' => true,
+                'expanded' => true,  // Pour afficher des cases à cocher
             ]);
     }
 

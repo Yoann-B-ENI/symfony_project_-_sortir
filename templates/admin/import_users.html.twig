@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Importer plusieurs utilisateurs{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Importer plusieurs utilisateurs</h1>
+
+        <form method="POST" enctype="multipart/form-data" action="{{ path('admin_import_users_upload') }}" class="mb-4">
+            <div class="input-group">
+                <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                <button class="btn btn-outline-secondary" type="submit">Importer</button>
+            </div>
+        </form>
+
+        <p class="text-center text-muted">Téléchargez un fichier CSV contenant plusieurs utilisateurs à importer.</p>
+    </div>
+{% endblock %}
