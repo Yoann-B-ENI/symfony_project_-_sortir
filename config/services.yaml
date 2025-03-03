@@ -10,6 +10,7 @@ parameters:
     event_photo_def_filename: "cover_img"
     user_photo_dir: "%kernel.project_dir%/public/uploads/users"
     user_photo_def_filename: "profile_img"
+    timezone: '%env(APP_TIMEZONE)%'
 
 services:
     # default configuration for services in *this* file
