@@ -67,7 +67,14 @@ class ImageManagement{
 
 //UPDATE ANCIEN CODE
 
-
+    /* if ($imageFile) {
+                    // uploads/events -> uploads/events/5
+                    $eventPhotoDir = $photoDir . "/" . $event->getId();
+                    // cover_img -> cover_img.jpg/png/...
+                    $filename = $filename . '.' . $imageFile->guessExtension();
+                    $event->setImg($filename);
+                    $imageFile->move($eventPhotoDir, $filename);
+                } */
 
 // DELETE ANCIEN CODE :
 

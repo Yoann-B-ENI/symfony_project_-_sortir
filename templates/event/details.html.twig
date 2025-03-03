@@ -47,11 +47,14 @@
                         <td style="border: 1px solid black">{{ p.username }}</td>
                         <td style="border: 1px solid black">{{ p.firstName ~ ' ' ~ p.lastName }}</td>
                         <td style="border: 1px solid black">
-                        {% if p.id == app.user.id %}
-                            <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Se retirer</a>
-                        {% elseif app.user.id == event.organizer.id%}
-                            <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Enlever ce participant</a>
+                        {% if date() > date(event.startsAt) or date() > date(event.endsAt) or date() > date(event.openUntil) %}
                         {% else %}
+                            {% if p.id == app.user.id %}
+                                <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Se retirer</a>
+                            {% elseif app.user.id == event.organizer.id%}
+                                <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Enlever ce participant</a>
+                            {% else %}
+                            {% endif %}
                         {% endif %}
                         </td>
                     </tr>
@@ -64,6 +67,8 @@
                     <td style="border: 1px solid black">
                         {% if date() > date(event.startsAt) or date() > date(event.endsAt)%}
                             Evènement déjà passé (ou commencé)
+                        {% elseif date() > date(event.openUntil)%}
+                            Inscription terminée
                         {% else %}
                             {% if app.user in event.participants%}
                                 Déjà inscrit (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}">Se retirer?</a>)
@@ -96,11 +101,13 @@
 
         <div class="mt-4">
             <a href="{{ path('event') }}" class="btn btn-secondary">Retour</a>
+            {% if currentUser and event.organizer.id == currentUser.id %}
             <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
             <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
             </form>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
