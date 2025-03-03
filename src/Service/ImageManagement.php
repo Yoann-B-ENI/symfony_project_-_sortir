@@ -45,8 +45,7 @@ class ImageManagement{
         if ($filesystem->exists($targetDirectory)) {
             $filesystem->remove($targetDirectory);
         }
-
-
+        
     }
 
 
