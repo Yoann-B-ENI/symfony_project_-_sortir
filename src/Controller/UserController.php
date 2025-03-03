@@ -25,7 +25,6 @@ final class UserController extends AbstractController
             'title' => 'Profile',
         ]);
     }
-//j'ai fait des modifications ici !!!!!
     //modification profil utilisateur
     #[Route('/{id}/update', name: 'update', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function update(User $user,  Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $em,
