@@ -63,7 +63,7 @@ class RegistrationController extends AbstractController
                     ->subject('Please Confirm your Email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')
             );
-          
+         
             $imageFile = $form->get('img')->getData();
             if ($imageFile) {
                 $imagePath = $imageManagement->upload($imageFile, $photoDir, $user->getId(), $filename);
@@ -71,7 +71,8 @@ class RegistrationController extends AbstractController
                 $entityManager->flush();
             }
            return $this-> redirectToRoute('app_standBy');
-           // return $security->login($user, AppAuthenticator::class, 'main');
+           //return $security->login($user, AppAuthenticator::class, 'main');
+
         }
 
         return $this->render('registration/register.html.twig', [
@@ -85,25 +86,48 @@ class RegistrationController extends AbstractController
      * @return Response
      */
     #[Route('/verify/email', name: 'app_verify_email')]
-    public function verifyUserEmail(Request $request, TranslatorInterface $translator): Response
+    public function verifyUserEmail(Request $request, TranslatorInterface $translator, EntityManagerInterface $em): Response
     {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        //$this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         // validate email confirmation link, sets User::isVerified=true and persists
         try {
-            /** @var User $user */
-            $user = $this->getUser();
+            $id = $request->query->get('id');
+
+            if (!$id) {
+                $user = $this->getUser();
+
+                if (!$user) {
+                    $this->addFlash('verify_email_error', 'Impossible de vérifier votre email. Veuillez vous connecter ou réessayer.');
+                    return $this->redirectToRoute('app_login');
+                }
+            } else {
+                $user = $em->getRepository(User::class)->find($id);
+
+                if (!$user) {
+                    $this->addFlash('verify_email_error', 'Utilisateur non trouvé.');
+                    return $this->redirectToRoute('app_register');
+                }
+            }
             $this->emailVerifier->handleEmailConfirmation($request, $user);
+//            $user->setIsVerified(true);
+//            $em->persist($user);
+//            $em->flush();
+            $this->addFlash('success', 'Votre adresse email a été vérifiée.');
+
+            return $this->redirectToRoute('app_login');
+
         } catch (VerifyEmailExceptionInterface $exception) {
             $this->addFlash('verify_email_error', $translator->trans($exception->getReason(), [], 'VerifyEmailBundle'));
 
             return $this->redirectToRoute('app_register');
         }
 
-        // @TODO Change the redirect on success and handle or remove the flash message in your templates
-        $this->addFlash('success', 'Your email address has been verified.');
-
-        return $this->redirectToRoute('user_profile');
+//        // @TODO Change the redirect on success and handle or remove the flash message in your templates
+//        $this->addFlash('success', 'Your email address has been verified.');
+//
+//        return $this->redirectToRoute('user_profile');
     }
     #[Route('/standBy', name: 'app_standBy')]
     public function redirectStandBy(){
