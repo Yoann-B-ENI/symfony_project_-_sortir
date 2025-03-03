@@ -3,111 +3,105 @@
 {% block title %}{{ event.title }}{% endblock %}
 
 {% block body %}
-    <div class="container mt-4 text-center">
-        <h1 class="mb-4">{{ event.title }}</h1>
-
-        {% if event.img %}
-            <div class="mt-3">
-                <img src="{{ asset(event.img) }}" alt="{{ event.title }}" class="img-fluid" style="max-width: 400px; height: auto; border-radius: 10px;">
+    <div class="container mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header text-center">
+                <h1 class="mb-0">{{ event.title }}</h1>
             </div>
-        {% else %}
-            <img src="{{ asset(event.getDefaultImg()) }}" alt="Image par défaut">
-        {% endif %}
+            <div class="card-body text-center">
+                {% if event.img %}
+                    <img src="{{ asset(event.img) }}" alt="{{ event.title }}" class="img-fluid rounded" style="max-width: 400px; height: auto;">
+                {% else %}
+                    <img src="{{ asset(event.getDefaultImg()) }}" alt="Image par défaut" class="img-fluid rounded">
+                {% endif %}
 
+                <div class="mt-3">
+                    <p><strong>Date :</strong> {{ event.startsAt|date('d/m/Y H:i') }} - {{ event.endsAt|date('d/m/Y H:i') }}</p>
+                    <p><strong>Date max d'inscription :</strong> {{ event.openUntil|date('d/m/Y H:i') }}</p>
+                    <p><strong>Participants max :</strong> {{ event.nbMaxParticipants }}</p>
+                    <div class="d-flex justify-content-center">
+                        <div class="p-3  rounded text-center" style="max-width: 400px; height: 150px; overflow-y: auto;">
+                            <h5 class="mb-2"><strong>Description :</strong></h5>
+                            <p class="mb-0">{{ event.description }}</p>
+                        </div>
+                    </div>
+                    <p><strong>Statut :</strong> {{ event.status.name }}</p>
+                    <p><strong>Organisateur :</strong> {{ event.organizer.username }}</p>
+                    <p><strong>Campus :</strong> {{ event.campus.name }}</p>
 
+                    <p class="mt-3"><strong>Catégories :</strong></p>
+                    <ul class="list-group list-group-flush text-center">
+                        {% for category in event.categories %}
+                            <p>{{ category.name }}</p>
+                        {% endfor %}
+                    </ul>
 
+                    <p class="mt-3"><strong>Lieu :</strong></p>
+                    <p>{{ event.location.name }}</p>
+                    <p>{{ event.location.roadNumber ~ ' ' ~ event.location.roadName }}</p>
+                    <p>{{ event.location.zipCode ~ ' ' ~ event.location.townName }}</p>
+                    <p>{{ '°N, °S : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</p>
+                    <p>{{ event.location.extraInfo }}</p>
+                </div>
 
-        <p><strong>Date :</strong> {{ event.startsAt|date('d/m/Y H:i') }} - {{ event.endsAt|date('d/m/Y H:i') }}</p>
-        <p><strong>Date max d'inscription :</strong> {{ event.openUntil|date('d/m/Y H:i') }}</p>
-        <p><strong>Participants max :</strong> {{ event.nbMaxParticipants }}</p>
-        <p><strong>Description :</strong> {{ event.description }}</p>
-        <p><strong>Statut : </strong> {{ event.status.name }}</p>
-        <p><strong>Organisateur : </strong> {{ event.organizer.username }}</p>
-        <p><strong>Campus : </strong> {{ event.campus.name }}</p>
-
-        <strong>Catégories : </strong>
-        <ul>
-            {% for category in event.categories %}
-                <li>{{ category.name }}</li>
-            {% endfor %}
-        </ul>
-
-        <strong>Participants : </strong>
-        <table style="border: 2px solid black">
-            <thead style="background-color: rgb(228 240 245)">
-                <tr>
-                    <th style="border: 1px solid black">Nom d'utilisateur</th>
-                    <th style="border: 1px solid black">Prénom Nom</th>
-                    <th style="border: 1px solid black">Se retirer</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in event.participants %}
-                    <tr>
-                        <td style="border: 1px solid black">{{ p.username }}</td>
-                        <td style="border: 1px solid black">{{ p.firstName ~ ' ' ~ p.lastName }}</td>
-                        <td style="border: 1px solid black">
-                        {% if date() > date(event.startsAt) or date() > date(event.endsAt) or date() > date(event.openUntil) %}
-                        {% else %}
-                            {% if p.id == app.user.id %}
-                                <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Se retirer</a>
-                            {% elseif app.user.id == event.organizer.id%}
-                                <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}">Enlever ce participant</a>
-                            {% else %}
-                            {% endif %}
-                        {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot style="background-color: rgb(228 240 245)">
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td style="border: 1px solid black">
-                        {% if date() > date(event.startsAt) or date() > date(event.endsAt)%}
-                            Evènement déjà passé (ou commencé)
-                        {% elseif date() > date(event.openUntil)%}
-                            Inscription terminée
-                        {% else %}
-                            {% if app.user in event.participants%}
-                                Déjà inscrit (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}">Se retirer?</a>)
-                            {% else %}
-                                {% if not event.openUntil %}
-                                    <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                <div class="mt-4">
+                    <h4>Participants :</h4>
+                    <table class="table table-striped table-bordered text-center">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <th>Prénom Nom</th>
+                            <th>Se retirer</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for p in event.participants %}
+                            <tr>
+                                <td>{{ p.username }}</td>
+                                <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
+                                <td>
+                                    {% if date() <= date(event.startsAt) and date() <= date(event.endsAt) and date() <= date(event.openUntil) %}
+                                        {% if p.id == app.user.id %}
+                                            <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Se retirer</a>
+                                        {% elseif app.user.id == event.organizer.id %}
+                                            <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Enlever</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                        <tr>
+                            <td colspan="3">
+                                {% if date() > date(event.startsAt) or date() > date(event.endsAt) %}
+                                    <span class="text-danger">Événement terminé</span>
+                                {% elseif date() > date(event.openUntil) %}
+                                    <span class="text-warning">Inscription fermée</span>
                                 {% else %}
-                                    {% if date() > date(event.openUntil) %}
-                                        Inscription terminée
+                                    {% if app.user in event.participants %}
+                                        <span class="text-success">Déjà inscrit</span> (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}" class="text-danger">Se retirer?</a>)
                                     {% else %}
-                                        <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}">S'inscrire</a>
+                                        <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}" class="btn btn-primary btn-sm">S'inscrire</a>
                                     {% endif %}
                                 {% endif %}
-                            {% endif %}
-                        {% endif %}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
-        <strong>Lieu : </strong>
-        <ul>
-            <li>{{ event.location.name }}</li>
-            <li>{{ event.location.roadNumber ~ ' ' ~ event.location.roadName }}</li>
-            <li>{{ event.location.zipCode ~ ' ' ~ event.location.townName }}</li>
-            <li>{{ '°N, °S : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</li>
-            <li>{{ event.location.extraInfo }}</li>
-        </ul>
-
-
-        <div class="mt-4">
-            <a href="{{ path('event') }}" class="btn btn-secondary">Retour</a>
-            {% if currentUser and event.organizer.id == currentUser.id %}
-            <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
-            <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
-            </form>
-            {% endif %}
+                <div class="mt-4">
+                    <a href="{{ path('event') }}" class="btn btn-secondary">Retour</a>
+                    {% if currentUser and event.organizer.id == currentUser.id %}
+                        <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
+                        <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
