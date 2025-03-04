@@ -81,6 +81,7 @@ class Event
     private ?Location $location = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Assert\LessThanOrEqual(propertyPath: "startsAt", message: "l'inscription doit se faire avant l'évènement.")]
     private ?\DateTimeInterface $openUntil = null;
 
     public function __construct()
