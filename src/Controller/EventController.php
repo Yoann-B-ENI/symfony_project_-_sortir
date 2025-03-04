@@ -73,7 +73,7 @@ final class EventController extends AbstractController
     : Response
     {
         $event = new Event();
-        $form = $this->createForm(EventType::class, $event, ['is_update' => false]);
+        $form = $this->createForm(EventType::class, $event);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -126,7 +126,7 @@ final class EventController extends AbstractController
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cet événement.');
         }
 
-        $form = $this->createForm(EventType::class, $event, ['is_update' => true]);
+        $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

@@ -34,14 +34,15 @@ class EventType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
 
-        $isUpdate = $options['is_update']; // Vérifie si c'est une mise à jour
-
-        // Si ce n'est pas une mise à jour, on filtre les statuts pour n'afficher que "Prévu" et "Brouillon"
-        if ($isUpdate) {
-            $allowedStatuses = ['Brouillon', 'Prévu', 'Annulé', 'Archivé'];
-        } else {
-            $allowedStatuses = ['Prévu', 'Brouillon'];
-        }
+//        $isUpdate = $options['is_update']; // Vérifie si c'est une mise à jour
+//
+//        // Si ce n'est pas une mise à jour, on filtre les statuts pour n'afficher que "Prévu" et "Brouillon"
+//        if ($isUpdate) {
+//            $allowedStatuses = ['Brouillon', 'Prévu', 'Annulé', 'Archivé'];
+//        } else {
+//            $allowedStatuses = ['Prévu', 'Brouillon'];
+//        }
+        $allowedStatuses = ['Prévu', 'Brouillon'];
 
         $statuses = $this->statusRepository->createQueryBuilder('s')
             ->where('s.name IN (:allowedStatuses)')
@@ -58,7 +59,7 @@ class EventType extends AbstractType
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Titre'],
             ])
             ->add('startsAt', DateTimeType::class, [
-                'label'=> 'Date et heure de fin',
+                'label'=> 'Date et heure de début',
                 'widget' => 'single_text'
             ])
             ->add('endsAt', DateTimeType::class, [

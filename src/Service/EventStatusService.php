@@ -40,6 +40,9 @@ class EventStatusService{
         if ($event->getStatus()->getName() === 'Annulé') {
             return false;
         }
+        if ($event->getStatus()->getName() === 'Archivé') {
+            return false;
+        }
 
 
         // Vérifier si l'événement devrait être en cours

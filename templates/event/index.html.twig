@@ -74,14 +74,14 @@
                             <div class="card-footer text-center">
                                 <a href="{{ path('event_details', {'id': event.id}) }}" class="btn btn-primary btn-sm">Voir</a>
                                 {% if currentUser and event.organizer.id == currentUser.id %}
-                                {% if event.status.name != 'Annulé' %}
+                                {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' and event.status.name != 'En cours' %}
                                 <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
                                 {% endif %}
                                 <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
                                 </form>
-                                {% if event.status.name != 'Annulé' %}
+                                {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' %}
                                     {% if event.status.name != 'Passé' %}
                                     <form action="{{ path('event_cancel', { id: event.id }) }}" method="post" onsubmit="return confirm('Voulez-vous vraiment annuler cet événement ?');">
                                         <button type="submit" class="btn btn-danger">Annuler l'événement</button>

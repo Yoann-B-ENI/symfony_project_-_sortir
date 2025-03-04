@@ -10,7 +10,7 @@ class StatusFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $statuses = ['Brouillon', 'Prévu', 'En cours', 'Passé', 'Archivé'];
+        $statuses = ['Brouillon', 'Prévu', 'En cours', 'Passé', 'Archivé', 'Annulé'];
         foreach ($statuses as $s) {
             $status = new Status();
             $status->setName($s);
