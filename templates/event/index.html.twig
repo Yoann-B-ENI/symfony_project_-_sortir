@@ -77,9 +77,9 @@
                                 {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' and event.status.name != 'En cours' %}
                                 <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
                                 {% endif %}
-                                <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
+                                <form method="post" action="{{ path('event_archive', {'id': event.id}) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('archive' ~ event.id) }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Archiver cet événement ?');">Archiver</button>
                                 </form>
                                 {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' %}
                                     {% if event.status.name != 'Passé' %}
