@@ -118,6 +118,23 @@
             </form>
             {% endif %}
         </div>
+        {#
+        <div>
+            <h1>{{ event.title }}</h1>
+            <p>{{ event.description }}</p>#}
+
+            {# Conteneur pour la carte #}
+        {#   <div id="map" style="height: 400px;"></div>
+
+            {# Charger le contrôleur Stimulus pour la carte #}
+{#   {{ stimulus_controller('symfony/ux-map/map', {
+             {#      'center': [event.latitude, event.longitude],
+              {#     'zoom': 15,
+               {#    'markers': [
+                   {#    { 'position': [event.latitude, event.longitude], 'popup': event.title }
+           {#        ]
+            }) }}
+        </div>#}
 
     </div>
 {% endblock %}

@@ -84,6 +84,12 @@ class Event
     #[Assert\LessThanOrEqual(propertyPath: "startsAt", message: "l'inscription doit se faire avant l'évènement.")]
     private ?\DateTimeInterface $openUntil = null;
 
+//    #[ORM\Column(type: 'float')]
+//    private ?float $latitude = null;
+//
+//    #[ORM\Column(type: 'float')]
+//    private ?float $longitude = null;
+
     public function __construct()
     {
         $this->participants = new ArrayCollection();
