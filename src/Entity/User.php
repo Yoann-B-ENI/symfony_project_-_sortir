@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Service\NotifMessageManager;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OrderBy;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -315,6 +317,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-  
-  
+
+
+    #[ORM\PrePersist]
+    public function onCreation(NotifMessageManager $notifManager){
+        $notifManager->createMessage("L'utilisateur " . $this->getUserIdentifier() . " a été créé.",
+            false, ['ROLE_ADMIN'], null);
+        $notifManager->createMessage("Votre compte " . $this->getUserIdentifier() . " a été créé.",
+            false, ['ROLE_USER'], $this);
+    }
+
+    #[ORM\PreUpdate]
+    public function onUpdate(NotifMessageManager $notifManager, PreUpdateEventArgs $eventArgs){
+        $notifManager->createMessage("L'utilisateur " . $this->getUserIdentifier() . " a été modifié.",
+            false, ['ROLE_ADMIN'], null);
+        $notifManager->createMessage("Votre compte " . $this->getUserIdentifier() . " a été modifié.",
+            false, ['ROLE_USER'], $this);
+    }
+
+    #[ORM\PreRemove]
+    public function onRemove(NotifMessageManager $notifManager){
+        $notifManager->createMessage("L'utilisateur " . $this->getUserIdentifier() . " a été supprimé.",
+            false, ['ROLE_ADMIN'], null);
+        $notifManager->createMessage("Votre compte " . $this->getUserIdentifier() . " a été supprimé.",
+            false, ['ROLE_USER'], $this);
+    }
+
+
 }

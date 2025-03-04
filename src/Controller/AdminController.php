@@ -12,6 +12,7 @@ use App\Form\EventType;
 use App\Repository\CampusRepository;
 use App\Repository\EventRepository;
 use App\Repository\UserRepository;
+use App\Service\NotifMessageManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -30,22 +31,37 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class AdminController extends AbstractController
 {
+    private NotifMessageManager $notifManager;
+    private UserRepository $userRepository;
+    private EventRepository $eventRepository;
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(UserRepository $userRepository, EventRepository $eventRepository,
+                                EntityManagerInterface $entityManager, NotifMessageManager $notifManager)
+    {
+        $this->userRepository = $userRepository;
+        $this->eventRepository = $eventRepository;
+        $this->entityManager = $entityManager;
+        $this->notifManager = $notifManager;
+    }
+
+
     #[Route('/admin', name: 'admin', methods: ['GET', 'POST'])]
-    public function index(UserRepository $userRepository, EventRepository $eventRepository, Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request): Response
     {
         // Récupérer la valeur de la recherche
         $searchTerm = $request->query->get('searchTerm');
 
         if ($searchTerm) {
             // Recherche des utilisateurs par username, lastname ou email
-            $users = $userRepository->createQueryBuilder('u')
+            $users = $this->userRepository->createQueryBuilder('u')
                 ->where('u.username LIKE :search OR u.lastname LIKE :search OR u.email LIKE :search')
                 ->setParameter('search', '%' . $searchTerm . '%')
                 ->getQuery()
                 ->getResult();
 
             // Recherche des événements liés à ces utilisateurs (en tant qu'organisateur)
-            $events = $eventRepository->createQueryBuilder('e')
+            $events = $this->eventRepository->createQueryBuilder('e')
                 ->join('e.organizer', 'o')
                 ->where('o.username LIKE :search OR o.lastname LIKE :search OR o.email LIKE :search')
                 ->setParameter('search', '%' . $searchTerm . '%')
@@ -53,8 +69,8 @@ final class AdminController extends AbstractController
                 ->getResult();
         } else {
             // Si pas de recherche, récupérer tous les utilisateurs et événements
-            $users = $userRepository->findAll();
-            $events = $eventRepository->findAll();
+            $users = $this->userRepository->findAll();
+            $events = $this->eventRepository->findAll();
         }
 
         return $this->render('admin/index.html.twig', [
@@ -65,11 +81,11 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/details/user/{id}', name: 'admin_details_user', requirements: ['id' => '\d+'])]
-    public function details_user(int $id, UserRepository $userRepository, EventRepository $eventRepository): Response
+    public function details_user(int $id): Response
     {
-        $user = $userRepository->find($id);
-        $events = $eventRepository->findBy(['organizer' => $user]);
-        $eventParticipating = $eventRepository->findByParticipatingUser($user);
+        $user = $this->userRepository->find($id);
+        $events = $this->eventRepository->findBy(['organizer' => $user]);
+        $eventParticipating = $this->eventRepository->findByParticipatingUser($user);
 
         if (!$user) {
             throw $this->createNotFoundException('Cet utilisateur n\'existe pas.');
@@ -83,16 +99,16 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/delete/user/{id}', name: 'admin_delete_user', methods: ['POST'])]
-    public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
+    public function delete(int $id): Response
     {
-        $user = $userRepository->find($id);
+        $user = $this->userRepository->find($id);
 
         if (!$user) {
             throw $this->createNotFoundException('Cet utilisateur n\'existe pas.');
         }
 
-        $entityManager->remove($user);
-        $entityManager->flush();
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
         $this->addFlash('success', 'Utilisateur supprimé avec succès.');
 
         return $this->redirectToRoute('admin');
@@ -100,9 +116,9 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/edit/user/{id}', name: 'admin_edit_user', methods: ['GET', 'POST'])]
-    public function edit(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
+    public function edit(int $id, Request $request): Response
     {
-        $user = $userRepository->find($id);
+        $user = $this->userRepository->find($id);
 
         if (!$user) {
             throw $this->createNotFoundException('Cet utilisateur n\'existe pas.');
@@ -114,7 +130,8 @@ final class AdminController extends AbstractController
 
         // Traitement du formulaire
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+
+            $this->entityManager->flush();
             $this->addFlash('warning', 'Utilisateur modifié avec succès.');
 
             return $this->redirectToRoute('admin');
@@ -128,7 +145,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/add/user', name: 'admin_add_user')]
-    public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
+    public function addUser(Request $request, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = new User();
 
@@ -156,8 +173,8 @@ final class AdminController extends AbstractController
             }
 
             // Persister l'utilisateur
-            $entityManager->persist($user);
-            $entityManager->flush();
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
 
             // Message de succès
             $this->addFlash('success', 'Utilisateur ajouté avec succès.');
@@ -173,9 +190,9 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/details/event/{id}', name: 'admin_details_event', requirements: ['id' => '\d+'])]
-    public function details_event(int $id, EventRepository $eventRepository, UserRepository $userRepository, Request $request): Response
+    public function details_event(int $id, Request $request): Response
     {
-        $event = $eventRepository->find($id);
+        $event = $this->eventRepository->find($id);
 
         if (!$event) {
             throw $this->createNotFoundException('Cet évènement n\'existe pas.');
@@ -186,7 +203,7 @@ final class AdminController extends AbstractController
 
         // Si une recherche est effectuée, on filtre les utilisateurs
         if ($searchUsername) {
-            $users = $userRepository->createQueryBuilder('u')
+            $users = $this->userRepository->createQueryBuilder('u')
                 ->where('u.username LIKE :username OR u.lastname LIKE :lastName OR u.email LIKE :email')
                 ->setParameter('username', '%' . $searchUsername . '%')
                 ->setParameter('lastName', '%' . $searchUsername . '%')
@@ -195,7 +212,7 @@ final class AdminController extends AbstractController
                 ->getResult();
         } else {
             // Si aucune recherche, on récupère tous les utilisateurs
-            $users = $userRepository->findAll();
+            $users = $this->userRepository->findAll();
         }
 
         // Filtrer les utilisateurs qui ne sont pas encore participants
@@ -226,16 +243,16 @@ final class AdminController extends AbstractController
 
 
     #[Route('/admin/delete/event/{id}', name: 'admin_delete_event', methods: ['POST'])]
-    public function deleteevent(int $id, EventRepository $eventRepository, EntityManagerInterface $entityManager): Response
+    public function deleteevent(int $id): Response
     {
-        $event = $eventRepository->find($id);
+        $event = $this->eventRepository->find($id);
 
         if (!$event) {
             throw $this->createNotFoundException('Cet évènement n\'existe pas.');
         }
 
-        $entityManager->remove($event);
-        $entityManager->flush();
+        $this->entityManager->remove($event);
+        $this->entityManager->flush();
         $this->addFlash('error', 'Evènement supprimé avec succès.');
 
         return $this->redirectToRoute('admin');
@@ -244,10 +261,10 @@ final class AdminController extends AbstractController
 
 
     #[Route('/admin/edit/event/{id}', name: 'admin_edit_event', methods: ['GET', 'POST'])]
-    public function editevent(int $id, EventRepository $eventRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
+    public function editevent(int $id, Request $request): Response
     {
-        $event = $eventRepository->find($id);
-        $users = $userRepository->findAll();
+        $event = $this->eventRepository->find($id);
+        $users = $this->userRepository->findAll();
 
         if (!$event) {
             throw $this->createNotFoundException('Cet évènement n\'existe pas.');
@@ -272,7 +289,7 @@ final class AdminController extends AbstractController
             }
 
             // Persister les changements
-            $entityManager->flush();
+            $this->entityManager->flush();
 
             // Message de succès
             $this->addFlash('warning', 'Evènement modifié avec succès.');
@@ -293,7 +310,7 @@ final class AdminController extends AbstractController
 
 
     #[Route('/admin/add/event', name: 'admin_add_event', methods: ['GET', 'POST'])]
-    public function addevent(EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request, UserRepository $userRepository): Response
+    public function addevent(Request $request): Response
     {
         $event = new Event();
 
@@ -302,7 +319,7 @@ final class AdminController extends AbstractController
         $form->handleRequest($request);
 
         // Récupérer tous les utilisateurs pour le menu déroulant
-        $users = $userRepository->findAll();  // Ou tu peux filtrer selon les rôles ou critères
+        $users = $this->userRepository->findAll();  // Ou tu peux filtrer selon les rôles ou critères
 
         // Vérifie si un organisateur est déjà sélectionné
         $selectedOrganizer = $event->getOrganizer();
@@ -322,8 +339,8 @@ final class AdminController extends AbstractController
             }
 
             // Persister l'événement
-            $entityManager->persist($event);
-            $entityManager->flush();
+            $this->entityManager->persist($event);
+            $this->entityManager->flush();
 
             // Message de succès
             $this->addFlash('success', 'Evènement ajouté avec succès.');
@@ -343,9 +360,9 @@ final class AdminController extends AbstractController
 
 
     #[Route('/admin/get-campus/{userId}', name: 'admin_get_campus', methods: ['GET'])] // Route pour précharger le campus (Admin - créer un Event)
-    public function getCampus(UserRepository $userRepository, int $userId): JsonResponse
+    public function getCampus(int $userId): JsonResponse
     {
-        $user = $userRepository->find($userId);
+        $user = $this->userRepository->find($userId);
 
         if (!$user || !$user->getCampus()) {
             return new JsonResponse(['campus' => null], Response::HTTP_NOT_FOUND);
@@ -355,10 +372,10 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/event/{eventId}/addParticipant/{userId}', name: 'admin_event_add_participant', requirements: ['eventId' => '\d+', 'userId' => '\d+'])]
-    public function adminAddParticipant(int $eventId, int $userId, EntityManagerInterface $em): RedirectResponse
+    public function adminAddParticipant(int $eventId, int $userId, ): RedirectResponse
     {
-        $event = $em->getRepository(Event::class)->find($eventId);
-        $user = $em->getRepository(User::class)->find($userId);
+        $event = $this->entityManager->getRepository(Event::class)->find($eventId);
+        $user = $this->entityManager->getRepository(User::class)->find($userId);
 
         // Vérification si l'événement et l'utilisateur existent
         if (!$event || !$user) {
@@ -374,8 +391,10 @@ final class AdminController extends AbstractController
 
         // Vérification si l'utilisateur participe déjà à l'événement
         if (!$event->getParticipants()->contains($user)) {
+            $this->notifManager->createMessage("Vous avez été ajouté à l'évènement " . $event->getTitle() . ".",
+                true, ['ROLE_USER'], $user);
             $event->addParticipant($user);
-            $em->flush();
+            $this->entityManager->flush();
             $this->addFlash('success', 'Participant ajouté avec succès.');
         } else {
             $this->addFlash('warning', 'Cet utilisateur participe déjà à l\'événement.');
@@ -387,10 +406,10 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/event/{eventId}/removeParticipant/{userId}', name: 'admin_event_remove_participant', requirements: ['eventId' => '\d+', 'userId' => '\d+'])]
-    public function adminRemoveParticipant(int $eventId, int $userId, EntityManagerInterface $em): RedirectResponse
+    public function adminRemoveParticipant(int $eventId, int $userId): RedirectResponse
     {
-        $event = $em->getRepository(Event::class)->find($eventId);
-        $user = $em->getRepository(User::class)->find($userId);
+        $event = $this->entityManager->getRepository(Event::class)->find($eventId);
+        $user = $this->entityManager->getRepository(User::class)->find($userId);
 
         if (!$event || !$user) {
             $this->addFlash('error', 'Événement ou utilisateur introuvable.');
@@ -398,8 +417,10 @@ final class AdminController extends AbstractController
         }
 
         if ($event->getParticipants()->contains($user)) {
+            $this->notifManager->createMessage("Vous avez été retiré de l'évènement " . $event->getTitle() . ".",
+                true, ['ROLE_USER'], $user);
             $event->removeParticipant($user);
-            $em->flush();
+            $this->entityManager->flush();
             $this->addFlash('error', 'Participant retiré avec succès.');
         } else {
             $this->addFlash('warning', 'Cet utilisateur ne participe pas à l\'événement.');
@@ -415,7 +436,8 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/import-users/upload', name: 'admin_import_users_upload', methods: ['POST'])]
-    public function importUsers(Request $request, CampusRepository $campusRepository, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
+    public function importUsers(Request $request, CampusRepository $campusRepository,
+                                UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
     {
         $file = $request->files->get('csv_file');
 
@@ -455,13 +477,14 @@ final class AdminController extends AbstractController
                     }
                 } else {
                     // Si l'utilisateur est valide, persiste l'entité dans la base de données
-                    $entityManager->persist($user);
+                    $this->entityManager->persist($user);
                 }
             }
 
             fclose($handle);
-            $entityManager->flush();
+            $this->entityManager->flush();
 
+            $this->notifManager->createMessage("Un nouvel import d'utilisateurs a été effectué", true, ['ROLE_ADMIN'], null);
             $this->addFlash('success', 'Les utilisateurs ont été importés avec succès.');
         }
 
@@ -475,21 +498,25 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/user/{id}/ban', name: 'admin_ban_user', methods: ['POST'])]
-    public function banUser(User $user, EntityManagerInterface $em, Request $request): Response
+    public function banUser(User $user): Response
     {
         // Vérifiez si l'utilisateur a le rôle "ROLE_BAN"
         if (in_array('ROLE_BAN', $user->getRoles())) {
             // Si oui, retirez le rôle "ROLE_BAN"
             $user->removeRole('ROLE_BAN');
+            $this->notifManager->createMessage("L'utilisateur " . $user->getUserIdentifier() . " a été débanni", true, ['ROLE_ADMIN'], null);
+            $this->notifManager->createMessage("Vous avez été débanni", true, ['ROLE_USER'], $user);
             $this->addFlash('info', 'Utilisateur débanni avec succès');
         } else {
             // Sinon, ajoutez le rôle "ROLE_BAN"
             $user->addRole('ROLE_BAN');
+            $this->notifManager->createMessage("L'utilisateur " . $user->getUserIdentifier() . " a été banni", true, ['ROLE_ADMIN'], null);
+            $this->notifManager->createMessage("Vous avez été banni", true, ['ROLE_USER'], $user);
             $this->addFlash('info', 'Utilisateur banni avec succès');
         }
 
         // Enregistrez les modifications
-        $em->flush();
+        $this->entityManager->flush();
 
         // Redirigez vers la liste des utilisateurs
         return $this->redirectToRoute('admin');

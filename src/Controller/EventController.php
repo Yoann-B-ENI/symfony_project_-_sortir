@@ -9,6 +9,7 @@ use App\Form\EventType;
 use App\Service\Censuror;
 
 use App\Service\ImageManagement;
+use App\Service\NotifMessageManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
@@ -76,7 +77,6 @@ final class EventController extends AbstractController
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
 
-
             $entityManager->persist($event);
             $entityManager->flush();
 
@@ -137,6 +137,7 @@ final class EventController extends AbstractController
 
                 $event->setImg($newImagePath);
             }
+
 
             $entityManager->flush();
             return $this->redirectToRoute('event_details', ['id' => $event->getId()]);
