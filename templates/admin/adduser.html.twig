@@ -77,17 +77,6 @@
                     {% endif %}
                 </div>
                 <div class="mb-3">
-                    {{ form_label(form.img, 'Photo de profil') }}
-                    {{ form_widget(form.img, { 'attr': {'class': 'form-control'} }) }}
-                    {% if form.img.vars.errors|length > 0 %}
-                        <div class="text-danger">
-                            {% for error in form.img.vars.errors %}
-                                <p>{{ error.message }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="mb-3">
                     {{ form_label(form.plainPassword, 'Mot de passe') }}
                     {{ form_widget(form.plainPassword, { 'attr': {'class': 'form-control'} }) }}
                     {% if form.plainPassword.vars.errors|length > 0 %}
