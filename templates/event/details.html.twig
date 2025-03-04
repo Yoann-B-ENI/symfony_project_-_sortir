@@ -106,7 +106,9 @@
         <div class="mt-4">
             <a href="{{ path('event') }}" class="btn btn-secondary">Retour</a>
             {% if currentUser and event.organizer.id == currentUser.id %}
+            {% if event.status.name != 'Annulé' %}
             <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
+                {% endif %}
             <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>

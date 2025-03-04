@@ -82,9 +82,11 @@
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
                                 </form>
                                 {% if event.status.name != 'Annulé' %}
+                                    {% if event.status.name != 'Passé' %}
                                     <form action="{{ path('event_cancel', { id: event.id }) }}" method="post" onsubmit="return confirm('Voulez-vous vraiment annuler cet événement ?');">
                                         <button type="submit" class="btn btn-danger">Annuler l'événement</button>
                                     </form>
+                                    {% endif %}
                                 {% endif %}
                                 {% endif %}
                             </div>
