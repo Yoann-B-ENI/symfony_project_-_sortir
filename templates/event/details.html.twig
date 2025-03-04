@@ -40,7 +40,7 @@
                     <p>{{ event.location.name }}</p>
                     <p>{{ event.location.roadNumber ~ ' ' ~ event.location.roadName }}</p>
                     <p>{{ event.location.zipCode ~ ' ' ~ event.location.townName }}</p>
-                    <p>{{ '°N, °S : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</p>
+                    <p>{{ 'lat, lon : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</p>
                     <p>{{ event.location.extraInfo }}</p>
                 </div>
 
@@ -82,7 +82,11 @@
                                     {% if app.user in event.participants %}
                                         <span class="text-success">Déjà inscrit</span> (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}" class="text-danger">Se retirer?</a>)
                                     {% else %}
-                                        <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}" class="btn btn-primary btn-sm">S'inscrire</a>
+                                        {% if event.participants|length >= event.nbMaxParticipants %}
+                                            <span class="text-warning">Nombre max de participants atteint</span>
+                                        {% else %}
+                                            <a href="{{ path('event_add_participant', {'eventId': event.id, 'userId': app.user.id}) }}" class="btn btn-primary btn-sm">S'inscrire</a>
+                                        {% endif %}
                                     {% endif %}
                                 {% endif %}
                             </td>
@@ -90,15 +94,6 @@
                         </tfoot>
                     </table>
                 </div>
-
-        <strong>Lieu : </strong>
-        <ul>
-            <li>{{ event.location.name }}</li>
-            <li>{{ event.location.roadNumber ~ ' ' ~ event.location.roadName }}</li>
-            <li>{{ event.location.zipCode ~ ' ' ~ event.location.townName }}</li>
-            <li>{{ 'lat, lon : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</li>
-            <li>{{ event.location.extraInfo }}</li>
-        </ul>
 
 
         <div class="mt-4">
