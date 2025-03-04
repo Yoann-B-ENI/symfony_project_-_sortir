@@ -45,13 +45,7 @@ final class EventController extends AbstractController
         $userId = $this->getUser() ? $this->getUser()->getId() : null;
 
 
-//        if ($form->isSubmitted() && $form->isValid()) {
-//
-//                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-//
-//        } else {
         $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-
 
 
         foreach ($eventsList as $event) {
@@ -181,6 +175,29 @@ final class EventController extends AbstractController
         }
 
         return $this->redirectToRoute('event');
+    }
+
+    #[Route('/event/archive{id}', name: 'event_archive')]
+    public function ArchiveEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        // Récupérer le statut "Archivé"
+        $statusArchive = $statusRepository->findOneBy(['name' => 'Archivé']);
+
+        // Vérifier si le statut existe
+        if (!$statusArchive) {
+            $this->addFlash('error', 'Le statut Archivé n\'existe pas.');
+            return $this->redirectToRoute('event'); // Rediriger vers la liste des événements
+        }
+
+        // Modifier le statut de l'événement
+        $event->setStatus($statusArchive);
+        $entityManager->persist($event);
+        $entityManager->flush();
+
+        // Message de confirmation
+        $this->addFlash('success', 'L\'événement a été archivé.');
+
+        return $this->redirectToRoute('event'); // Rediriger après l'archivage
     }
 
     #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
