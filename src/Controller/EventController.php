@@ -45,13 +45,13 @@ final class EventController extends AbstractController
         $userId = $this->getUser() ? $this->getUser()->getId() : null;
 
 
-        if ($form->isSubmitted() && $form->isValid()) {
+//        if ($form->isSubmitted() && $form->isValid()) {
+//
+//                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+//
+//        } else {
+        $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
 
-                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-
-        } else {
-            $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-        }
 
 
         foreach ($eventsList as $event) {
@@ -73,7 +73,7 @@ final class EventController extends AbstractController
     : Response
     {
         $event = new Event();
-        $form = $this->createForm(EventType::class, $event);
+        $form = $this->createForm(EventType::class, $event, ['is_update' => false]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -126,7 +126,7 @@ final class EventController extends AbstractController
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cet événement.');
         }
 
-        $form = $this->createForm(EventType::class, $event);
+        $form = $this->createForm(EventType::class, $event, ['is_update' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

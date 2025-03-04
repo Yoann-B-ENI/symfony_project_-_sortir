@@ -6,6 +6,7 @@ use App\Entity\Category;
 use App\Entity\Event;
 use App\Entity\Location;
 use App\Entity\Status;
+use App\Repository\StatusRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -22,8 +23,35 @@ use Symfony\Component\Validator\Constraints\File;
 
 class EventType extends AbstractType
 {
+
+
+    private StatusRepository $statusRepository;
+
+    public function __construct(StatusRepository $statusRepository)
+    {
+        $this->statusRepository = $statusRepository;
+    }
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+
+        $isUpdate = $options['is_update']; // Vérifie si c'est une mise à jour
+
+        // Si ce n'est pas une mise à jour, on filtre les statuts pour n'afficher que "Prévu" et "Brouillon"
+        if ($isUpdate) {
+            $allowedStatuses = ['Brouillon', 'Prévu', 'Annulé', 'Archivé'];
+        } else {
+            $allowedStatuses = ['Prévu', 'Brouillon'];
+        }
+
+        $statuses = $this->statusRepository->createQueryBuilder('s')
+            ->where('s.name IN (:allowedStatuses)')
+            ->setParameter('allowedStatuses', $allowedStatuses)
+            ->getQuery()
+            ->getResult();
+
+
+
+
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Titre',
@@ -74,6 +102,7 @@ class EventType extends AbstractType
                 'label' => 'Statut',
                 'class' => Status::class,
                 'choice_label' => 'name',
+                'choices' => $statuses,
                 'required' => true,
                 'placeholder' => '--Choisir un statut--'])
             ->add('location',  EntityType::class, [
@@ -93,6 +122,7 @@ class EventType extends AbstractType
     {
         $resolver->setDefaults([
             'event_class' => Event::class,
+            'is_update' => false,
         ]);
     }
 }

@@ -22,13 +22,15 @@ class EventStatusService{
     {
 
         $now = new \DateTime();
+        $oneMonthAgo = (clone $now)->modify('-1 month');
         $changed = false;
 
         $statusEnCours = $this->statusRepository->findOneBy(['name' => 'En cours']);
-        $statusArchive = $this->statusRepository->findOneBy(['name' => 'Archivé']);
+        $statusPasse = $this->statusRepository->findOneBy(['name' => 'Passé']);
         $statusAVenir = $this->statusRepository->findOneBy(['name' => 'Prévu']);
+        $statusArchive = $this->statusRepository->findOneBy(['name' => 'Archivé']);
 
-        if (!$statusEnCours || !$statusArchive || !$statusAVenir) {
+        if (!$statusEnCours || !$statusPasse || !$statusAVenir || !$statusArchive) {
             return false;
         }
 
@@ -47,7 +49,12 @@ class EventStatusService{
             $changed = true;
         }
         // Vérifier si l'événement devrait être archivé
-        elseif ($event->getEndsAt() < $now && $event->getStatus()->getName() !== 'Archivé') {
+        elseif ($event->getEndsAt() < $now && $event->getEndsAt() > $oneMonthAgo&& $event->getStatus()->getName() !== 'Passé') {
+            $event->setStatus($statusPasse);
+            $changed = true;
+        }
+
+        elseif ($event->getEndsAt() < $oneMonthAgo && $event->getStatus()->getName() !== 'Archivé') {
             $event->setStatus($statusArchive);
             $changed = true;
         }
@@ -56,6 +63,7 @@ class EventStatusService{
             $event->setStatus($statusAVenir);
             $changed = true;
         }
+
 
         if ($changed) {
             $this->entityManager->persist($event);
