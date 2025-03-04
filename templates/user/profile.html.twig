@@ -5,24 +5,24 @@
         <div class="card mb-3" style="max-width: 100%;">
             <div class="row g-0">
                 <div class="col-md-4">
-                    {% if app.user.img %}
-                        <img src="{{ asset(app.user.img) }}" class="img-fluid h-100 rounded-start object-fit-cover; height:100%" alt="Avatar">
+                    {% if user.img %}
+                        <img src="{{ asset(user.img) }}" class="img-fluid h-100 rounded-start object-fit-cover; height:100%" alt="Avatar">
                     {% else %}
-                        <img src="{{ asset(app.user.getDefaultImg()) }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
+                        <img src="{{ asset(user.getDefaultImg()) }}" class="img-fluid h-100 rounded-start object-fit-cover" alt="Avatar">
 
                     {% endif %}
                 </div>
                 <div class="col-md-8">
                     <div class="card-body bg-navy-light shadow-lg" style="max-width: 800px; width: 100%">
-                        <h5 class="card-title">Profil : {{ app.user.username }}</h5>
-                        <p class="card-text">Campus : {{ app.user.campus.name }}</p>
-                        <p class="card-text">Prénom : {{ app.user.firstname }} </p>
-                        <p class="card-text">Nom : {{ app.user.lastname }} </p>
-                        <p class="card-text">Téléphone: {{ app.user.telephone }} </p>
-                        <p class="card-text">Email: {{ app.user.email }} </p>
+                        <h5 class="card-title">Profil : {{ user.username }}</h5>
+                        <p class="card-text">Campus : {{ user.campus.name }}</p>
+                        <p class="card-text">Prénom : {{ user.firstname }} </p>
+                        <p class="card-text">Nom : {{ user.lastname }} </p>
+                        <p class="card-text">Téléphone: {{ user.telephone }} </p>
+                        <p class="card-text">Email: {{ user.email }} </p>
                         <div>
-                            <a href="{{ path('user_update', {'id': app.user.id}) }}" title="Modifier un utilisateur" class="btn btn-outline-dark">Modifier</a>
-                            <a href="{{ path('user_delete', {'id':app.user.id}) }}" class="btn btn-outline-dark" onclick="return confirm('Voulez-vous supprimer votre profil ?')">Supprimer</a>
+                            <a href="{{ path('user_update', {'id': user.id}) }}" title="Modifier un utilisateur" class="btn btn-outline-dark">Modifier</a>
+                            <a href="{{ path('user_delete', {'id': user.id}) }}" class="btn btn-outline-dark" onclick="return confirm('Voulez-vous supprimer votre profil ?')">Supprimer</a>
                         </div>
 
                     </div>

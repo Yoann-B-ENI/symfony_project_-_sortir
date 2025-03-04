@@ -57,15 +57,21 @@
                         <tbody>
                         {% for p in event.participants %}
                             <tr>
-                                <td>{{ p.username }}</td>
+                                {% if p.id == app.user.id %}
+                                    <td>{{ p.username }}</td>
+                                {% else %}
+                                    <td><a href = "{{ path('user_details', {id: p.id}) }}">{{ p.username }}</a></td>
+                                {% endif %}
                                 <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
                                 <td>
+                                    {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' %}
                                     {% if date() <= date(event.startsAt) and date() <= date(event.endsAt) and date() <= date(event.openUntil) %}
                                         {% if p.id == app.user.id %}
                                             <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Se retirer</a>
                                         {% elseif app.user.id == event.organizer.id %}
                                             <a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Enlever</a>
                                         {% endif %}
+                                    {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
@@ -75,9 +81,11 @@
                         <tr>
                             <td colspan="3">
                                 {% if date() > date(event.startsAt) or date() > date(event.endsAt) %}
-                                    <span class="text-danger">Événement terminé</span>
+                                    <span class="text-danger">Événement en cours ou terminé</span>
                                 {% elseif date() > date(event.openUntil) %}
                                     <span class="text-warning">Inscription fermée</span>
+                                {% elseif event.status.name == 'Annulé' %}
+                                    <span class="text-warning">Évènement annulé</span>
                                 {% else %}
                                     {% if app.user in event.participants %}
                                         <span class="text-success">Déjà inscrit</span> (<a href="{{ path('event_remove_participant', {'eventId': event.id, 'userId': app.user.id}) }}" class="text-danger">Se retirer?</a>)
@@ -94,17 +102,22 @@
                         </tfoot>
                     </table>
                 </div>
+            </div>
+        </div>
 
 
         <div class="mt-4">
             <a href="{{ path('event') }}" class="btn btn-secondary">Retour</a>
             {% if currentUser and event.organizer.id == currentUser.id %}
-            <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
+                {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' and event.status.name != 'En cours' %}
+                <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning">Modifier</a>
+                {% endif %}
             <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
             </form>
             {% endif %}
         </div>
+
     </div>
 {% endblock %}
