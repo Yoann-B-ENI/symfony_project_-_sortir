@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Event;
+use App\Entity\Status;
 use App\Entity\User;
+use App\Form\AdminAddEventType;
 use App\Form\AdminEditEventType;
 use App\Form\AdminAddUserType;
 use App\Form\AdminEditUserType;
@@ -83,7 +85,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/delete/user/{id}', name: 'admin_delete_user', methods: ['POST'])]
-    public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): Response
+    public function delete(int $id, UserRepository $userRepository, EventRepository $eventRepository, EntityManagerInterface $entityManager): Response
     {
         $user = $userRepository->find($id);
 
@@ -91,12 +93,21 @@ final class AdminController extends AbstractController
             throw $this->createNotFoundException('Cet utilisateur n\'existe pas.');
         }
 
+        // Récupérer les événements créés par l'utilisateur
+        $events = $eventRepository->findBy(['organizer' => $user]);
+
+        // Supprimer les événements
+        foreach ($events as $event) {
+            $entityManager->remove($event);
+        }
+
+        // Supprimer l'utilisateur
         $entityManager->remove($user);
         $entityManager->flush();
-        $this->addFlash('success', 'Utilisateur supprimé avec succès.');
+
+        $this->addFlash('error', 'Utilisateur, ses événements & participations supprimés avec succès.');
 
         return $this->redirectToRoute('admin');
-
     }
 
     #[Route('/admin/edit/user/{id}', name: 'admin_edit_user', methods: ['GET', 'POST'])]
@@ -148,11 +159,19 @@ final class AdminController extends AbstractController
                 // Stocker le mot de passe haché dans la base de données
                 $user->setPassword($hashedPassword);
             } else {
-                // Gérer le cas où le mot de passe est null (par exemple, ajouter un message d'erreur)
+                // Gérer le cas où le mot de passe est null
                 $this->addFlash('error', 'Le mot de passe est requis.');
                 return $this->render('admin/adduser.html.twig', [
-                    'form' => $form,
+                    'form' => $form->createView(),
                 ]);
+            }
+
+            // Définir l'utilisateur comme vérifié
+            $user->setIsVerified(true);
+
+            // S'assurer que la photo de profil est bien définie
+            if (!$user->getImg()) {
+                $user->setImg('profile_images/default-photo.jpg');
             }
 
             // Persister l'utilisateur
@@ -168,9 +187,10 @@ final class AdminController extends AbstractController
 
         // Affichage du formulaire dans la vue
         return $this->render('admin/adduser.html.twig', [
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
+
 
     #[Route('/admin/details/event/{id}', name: 'admin_details_event', requirements: ['id' => '\d+'])]
     public function details_event(int $id, EventRepository $eventRepository, UserRepository $userRepository, Request $request): Response
@@ -242,12 +262,10 @@ final class AdminController extends AbstractController
 
     }
 
-
     #[Route('/admin/edit/event/{id}', name: 'admin_edit_event', methods: ['GET', 'POST'])]
-    public function editevent(int $id, EventRepository $eventRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
+    public function editevent(int $id, EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request): Response
     {
         $event = $eventRepository->find($id);
-        $users = $userRepository->findAll();
 
         if (!$event) {
             throw $this->createNotFoundException('Cet évènement n\'existe pas.');
@@ -285,40 +303,25 @@ final class AdminController extends AbstractController
         return $this->render('admin/editevent.html.twig', [
             'form' => $form,
             'event' => $event,
-            'users' => $users,
             'selectedOrganizer' => $selectedOrganizer,
             'campus' => $campus, // Passe le campus à la vue pour qu'il soit affiché
         ]);
     }
 
-
     #[Route('/admin/add/event', name: 'admin_add_event', methods: ['GET', 'POST'])]
-    public function addevent(EventRepository $eventRepository, EntityManagerInterface $entityManager, Request $request, UserRepository $userRepository): Response
+    public function addevent(EntityManagerInterface $entityManager, Request $request): Response
     {
         $event = new Event();
 
         // Créer le formulaire
-        $form = $this->createForm(AdminEditEventType::class, $event);
+        $form = $this->createForm(AdminAddEventType::class, $event);
         $form->handleRequest($request);
-
-        // Récupérer tous les utilisateurs pour le menu déroulant
-        $users = $userRepository->findAll();  // Ou tu peux filtrer selon les rôles ou critères
-
-        // Vérifie si un organisateur est déjà sélectionné
-        $selectedOrganizer = $event->getOrganizer();
-
-        // Si un organisateur est sélectionné, récupérer son campus
-        $campus = null;
-        if ($selectedOrganizer) {
-            $campus = $selectedOrganizer->getCampus();
-        }
 
         // Traitement du formulaire
         if ($form->isSubmitted() && $form->isValid()) {
-            // Si un organisateur est sélectionné et a un campus, assigner le campus à l'événement
-            $organizer = $event->getOrganizer();
-            if ($organizer && $organizer->getCampus()) {
-                $event->setCampus($organizer->getCampus());
+            // Si un organisateur est sélectionné, mettre à jour le campus
+            if ($event->getOrganizer()?->getCampus()) {
+                $event->setCampus($event->getOrganizer()->getCampus());
             }
 
             // Persister l'événement
@@ -326,7 +329,7 @@ final class AdminController extends AbstractController
             $entityManager->flush();
 
             // Message de succès
-            $this->addFlash('success', 'Evènement ajouté avec succès.');
+            $this->addFlash('success', 'Évènement ajouté avec succès.');
 
             // Rediriger vers la page admin
             return $this->redirectToRoute('admin');
@@ -334,13 +337,9 @@ final class AdminController extends AbstractController
 
         // Affichage du formulaire dans la vue
         return $this->render('admin/addevent.html.twig', [
-            'form' => $form->createView(),
-            'campus' => $campus,  // Passe le campus à la vue pour un premier affichage
-            'users' => $users,    // Passe la liste des utilisateurs à la vue
+            'form' => $form,
         ]);
     }
-
-
 
     #[Route('/admin/get-campus/{userId}', name: 'admin_get_campus', methods: ['GET'])] // Route pour précharger le campus (Admin - créer un Event)
     public function getCampus(UserRepository $userRepository, int $userId): JsonResponse
@@ -443,7 +442,8 @@ final class AdminController extends AbstractController
                     ->setLastname($data[4])
                     ->setFirstname($data[5])
                     ->setTelephone($data[6])
-                    ->setUsername($data[7]);
+                    ->setUsername($data[7])
+                    ->setIsVerified(true);
 
                 // Validation de l'utilisateur
                 $errors = $validator->validate($user);
@@ -475,24 +475,45 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/user/{id}/ban', name: 'admin_ban_user', methods: ['POST'])]
-    public function banUser(User $user, EntityManagerInterface $em, Request $request): Response
+    public function banUser(User $user, EntityManagerInterface $em, EventRepository $eventRepository, Request $request): Response
     {
-        // Vérifiez si l'utilisateur a le rôle "ROLE_BAN"
+        // Vérifier si l'utilisateur a le rôle "ROLE_BAN"
         if (in_array('ROLE_BAN', $user->getRoles())) {
-            // Si oui, retirez le rôle "ROLE_BAN"
+            // Si oui, retirer le rôle "ROLE_BAN"
             $user->removeRole('ROLE_BAN');
-            $this->addFlash('info', 'Utilisateur débanni avec succès');
+            $this->addFlash('info', 'Utilisateur débanni avec succès.');
         } else {
-            // Sinon, ajoutez le rôle "ROLE_BAN"
+            // Sinon, ajouter le rôle "ROLE_BAN"
             $user->addRole('ROLE_BAN');
-            $this->addFlash('info', 'Utilisateur banni avec succès');
+            $this->addFlash('info', 'Utilisateur banni avec succès.');
+
+            // Récupérer tous les événements où l'utilisateur est l'organisateur
+            $createdEvents = $eventRepository->findBy(['organizer' => $user]);
+
+            foreach ($createdEvents as $event) {
+                // Mettre à jour le statut de l'événement à "annulé"
+                $statusCancelled = $em->getRepository(Status::class)->findOneBy(['name' => 'Annulé']);
+                if ($statusCancelled) {
+                    $event->setStatus($statusCancelled);
+                }
+            }
+
+            // Récupérer tous les événements où l'utilisateur est un participant
+            $participatingEvents = $eventRepository->findByParticipatingUser($user);
+
+            foreach ($participatingEvents as $event) {
+                // Retirer l'utilisateur de la liste des participants
+                $event->removeParticipant($user);
+            }
         }
 
-        // Enregistrez les modifications
+        // Persister les modifications du rôle dans la base de données
+        $em->persist($user);
         $em->flush();
 
         // Redirigez vers la liste des utilisateurs
         return $this->redirectToRoute('admin');
     }
+
 
 }

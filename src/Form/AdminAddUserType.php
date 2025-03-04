@@ -9,6 +9,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -63,7 +64,8 @@ class AdminAddUserType extends AbstractType
                 'label' => 'Numéro de téléphone'
             ])
             ->add('img', TextType::class, [
-                'label' => 'photo de profil',
+                'label' => ' ',
+                'attr' => ['style' => 'display: none;'] // Cache le champ mais il reste dans le formulaire
             ])
             ->add('roles', ChoiceType::class, [
                 'choices' => [
@@ -81,6 +83,10 @@ class AdminAddUserType extends AbstractType
                     ]),
                 ],
             ])
+            ->add('is_verified', HiddenType::class, [
+                'mapped' => false,
+                'data' => 1, // Valeur toujours soumise à 1
+            ]);
         ;
     }
 
