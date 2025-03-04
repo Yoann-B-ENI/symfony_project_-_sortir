@@ -63,10 +63,6 @@ class AdminAddUserType extends AbstractType
             ->add('telephone', TextType::class, [
                 'label' => 'Numéro de téléphone'
             ])
-            ->add('img', TextType::class, [
-                'label' => ' ',
-                'attr' => ['style' => 'display: none;'] // Cache le champ mais il reste dans le formulaire
-            ])
             ->add('roles', ChoiceType::class, [
                 'choices' => [
                     'Utilisateur' => 'ROLE_USER',

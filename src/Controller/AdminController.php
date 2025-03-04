@@ -162,17 +162,12 @@ final class AdminController extends AbstractController
                 // Gérer le cas où le mot de passe est null
                 $this->addFlash('error', 'Le mot de passe est requis.');
                 return $this->render('admin/adduser.html.twig', [
-                    'form' => $form->createView(),
+                    'form' => $form,
                 ]);
             }
 
             // Définir l'utilisateur comme vérifié
             $user->setIsVerified(true);
-
-            // S'assurer que la photo de profil est bien définie
-            if (!$user->getImg()) {
-                $user->setImg('profile_images/default-photo.jpg');
-            }
 
             // Persister l'utilisateur
             $entityManager->persist($user);
@@ -187,7 +182,7 @@ final class AdminController extends AbstractController
 
         // Affichage du formulaire dans la vue
         return $this->render('admin/adduser.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
@@ -490,12 +485,12 @@ final class AdminController extends AbstractController
             // Récupérer tous les événements où l'utilisateur est l'organisateur
             $createdEvents = $eventRepository->findBy(['organizer' => $user]);
 
-            foreach ($createdEvents as $event) {
+            $statusCancelled = $em->getRepository(Status::class)->findOneBy(['name' => 'Annulé']);
                 // Mettre à jour le statut de l'événement à "annulé"
-                $statusCancelled = $em->getRepository(Status::class)->findOneBy(['name' => 'Annulé']);
-                if ($statusCancelled) {
+            if ($statusCancelled) {
+                foreach ($createdEvents as $event) {
                     $event->setStatus($statusCancelled);
-                }
+                    }
             }
 
             // Récupérer tous les événements où l'utilisateur est un participant
