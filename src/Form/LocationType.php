@@ -57,10 +57,6 @@ class LocationType extends AbstractType
                 'required' => false,
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Informations supplémentaires sur le lieu (numéro de salle, ...)'],
             ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Enregistrer',
-                'attr' => ['class' => 'btn btn-success'],
-            ])
         ;
     }
 

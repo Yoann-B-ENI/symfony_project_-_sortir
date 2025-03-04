@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Event;
+use App\Entity\Location;
 use App\Entity\Status;
 use App\Entity\User;
 use App\Form\AdminAddEventType;
@@ -11,8 +12,10 @@ use App\Form\AdminAddUserType;
 use App\Form\AdminEditUserType;
 use App\Form\EventFilterType;
 use App\Form\EventType;
+use App\Form\LocationType;
 use App\Repository\CampusRepository;
 use App\Repository\EventRepository;
+use App\Repository\LocationRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,7 +36,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final class AdminController extends AbstractController
 {
     #[Route('/admin', name: 'admin', methods: ['GET', 'POST'])]
-    public function index(UserRepository $userRepository, EventRepository $eventRepository, Request $request, EntityManagerInterface $entityManager): Response
+    public function index(UserRepository $userRepository, EventRepository $eventRepository, LocationRepository $locationRepo, Request $request, EntityManagerInterface $entityManager): Response
     {
         // Récupérer la valeur de la recherche
         $searchTerm = $request->query->get('searchTerm');
@@ -59,9 +62,12 @@ final class AdminController extends AbstractController
             $events = $eventRepository->findAll();
         }
 
+        $locations = $locationRepo->findAll();
+
         return $this->render('admin/index.html.twig', [
             'users' => $users,
             'events' => $events,
+            'locations' => $locations,
             'searchTerm' => $searchTerm,
         ]);
     }
@@ -509,6 +515,57 @@ final class AdminController extends AbstractController
         // Redirigez vers la liste des utilisateurs
         return $this->redirectToRoute('admin');
     }
+
+    #[Route('/admin/add/location', name: 'admin_add_location', methods: ['GET', 'POST'])]
+    public function addLocation(EntityManagerInterface $em, Request $request): Response
+    {
+        $location = new Location();
+        $locForm = $this->createForm(LocationType::class, $location);
+
+        $locForm->handleRequest($request);
+        if ($locForm->isSubmitted() && $locForm->isValid()){
+            $em->persist($location);
+            $em->flush();
+            return $this->redirectToRoute('admin');
+        }
+
+        return $this->render('location/update.html.twig', [
+            'locForm' => $locForm,
+            'title' => 'Ajout d\'une adresse',
+        ]);
+    }
+
+    #[Route('/admin/details/location/{id}', name: 'admin_details_location', requirements: ['id' => '\d+'])]
+    public function details_location(int $id, LocationRepository $locationRepository, EventRepository $eventRepository): Response
+    {
+        $location = $locationRepository->find($id);
+
+        if (!$location) {
+            throw $this->createNotFoundException('Cette adresse n\'existe pas.');
+        }
+
+        return $this->render('admin/detailslocation.html.twig', [
+            'location' => $location,
+        ]);
+    }
+
+    #[Route('/admin/delete/location/{id}', name: 'admin_delete_location', methods: ['GET', 'POST'])]
+    public function deleteLocation(int $id, LocationRepository $locationRepository, EntityManagerInterface $em, Request $request): Response
+    {
+        $location = $locationRepository->find($id);
+
+        if (!$location) {
+            throw $this->createNotFoundException('Cette adresse n\'existe pas.');
+        }
+
+        $em->remove($location);
+        $em->flush();
+        $this->addFlash('error', 'Adresse supprimée avec succès.');
+
+        return $this->redirectToRoute('admin');
+
+    }
+
 
 
 }
