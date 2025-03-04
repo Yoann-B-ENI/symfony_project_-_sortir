@@ -21,10 +21,22 @@ final class UserController extends AbstractController
     #[Route('/', name: 'profile', methods: ['GET'])]
     public function index(): Response
     {
+        $user = $this->getUser();
         return $this->render('user/profile.html.twig', [
-            'title' => 'Profile',
+            'user' => $user,
         ]);
     }
+
+    #[Route('/{id}/details', name: 'details', requirements: ['id' => '\d+'])]
+    public function details(User $user): Response
+    {
+        return $this->render('user/profile.html.twig', [
+            'user' => $user,
+        ]);
+    }
+
+
+
     //modification profil utilisateur
     #[Route('/{id}/update', name: 'update', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function update(User $user,  Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $em,

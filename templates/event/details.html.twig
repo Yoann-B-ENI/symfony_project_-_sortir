@@ -57,7 +57,11 @@
                         <tbody>
                         {% for p in event.participants %}
                             <tr>
-                                <td>{{ p.username }}</td>
+                                {% if p.id == app.user.id %}
+                                    <td>{{ p.username }}</td>
+                                {% else %}
+                                    <td><a href = "{{ path('user_details', {id: p.id}) }}">{{ p.username }}</a></td>
+                                {% endif %}
                                 <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
                                 <td>
                                     {% if date() <= date(event.startsAt) and date() <= date(event.endsAt) and date() <= date(event.openUntil) %}
