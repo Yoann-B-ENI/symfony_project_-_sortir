@@ -39,17 +39,19 @@ final class EventController extends AbstractController
 
         $campus = $form->get('campus')->getData();
         $organizer = $form->get('organizer')->getData();
-        $category = $form->get('category')->getData();
+        $categories = $form->get('category')->getData();
         $status = $form->get('status')->getData();
 
         $campusId = $campus ? $campus->getId() : null;
         $organizerId = $organizer ? $organizer->getId() : null;
-        $categoryId = $category ? $category->getId() : null;
+        $categoryIds = $categories ? array_map(function($category) {
+            return $category->getId();
+        }, $categories->toArray()) : null;
         $statusId = $status ? $status->getId() : null;
         $userId = $this->getUser() ? $this->getUser()->getId() : null;
 
 
-        $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+        $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryIds, $statusId, $userId);
 
 
         foreach ($eventsList as $event) {
