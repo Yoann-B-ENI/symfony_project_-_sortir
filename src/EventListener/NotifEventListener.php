@@ -12,7 +12,7 @@ use Doctrine\ORM\Events;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 #[AsEntityListener(event: Events::prePersist, method: 'eventCreated', entity: Event::class)]
-#[AsEntityListener(event: Events::preUpdate, method: 'eventUpdated', entity: Event::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'eventUpdated', entity: Event::class)]
 #[AsEntityListener(event: Events::preRemove, method: 'eventRemoved', entity: Event::class)]
 #[AsEntityListener(event: Events::postPersist, method: 'userCreated', entity: User::class)]
 #[AsEntityListener(event: Events::postUpdate, method: 'userUpdated', entity: User::class)]
@@ -39,25 +39,25 @@ class NotifEventListener
     }
 
 
-    // can be pre update, user and participants always already exist in DB?
-    public function eventUpdated(Event $event, PreUpdateEventArgs $eventArgs): void
+    // only post update works, but now the $eventArgs aren't accessible
+    public function eventUpdated(Event $event, PostUpdateEventArgs $eventArgs): void
     {
-        $body = "";
-        if ($eventArgs->hasChangedField('title')){$body = $body . "titre, ";}
-        if ($eventArgs->hasChangedField('startsAt')){$body = $body . "date de début, ";}
-        if ($eventArgs->hasChangedField('endsAt')){$body = $body . "date de fin, ";}
-        if ($eventArgs->hasChangedField('openUntil')){$body = $body . "date max d'inscription, ";}
-        if ($eventArgs->hasChangedField('nbMaxParticipants')){$body = $body . "nombre max participants, ";}
-        if ($eventArgs->hasChangedField('description')){$body = $body . "description, ";}
-        if ($eventArgs->hasChangedField('img')){$body = $body . "image, ";}
+//        $body = "";
+//        if ($eventArgs->hasChangedField('title')){$body = $body . "titre, ";}
+//        if ($eventArgs->hasChangedField('startsAt')){$body = $body . "date de début, ";}
+//        if ($eventArgs->hasChangedField('endsAt')){$body = $body . "date de fin, ";}
+//        if ($eventArgs->hasChangedField('openUntil')){$body = $body . "date max d'inscription, ";}
+//        if ($eventArgs->hasChangedField('nbMaxParticipants')){$body = $body . "nombre max participants, ";}
+//        if ($eventArgs->hasChangedField('description')){$body = $body . "description, ";}
+//        if ($eventArgs->hasChangedField('img')){$body = $body . "image, ";}
         //if ($eventArgs->hasChangedField('status')){$body = $body . "statut, ";}
 
-        $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " a été modifié. " . $body,
+        $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " a été modifié. ",
             false, ['ROLE_ADMIN'], null);
-        $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " que vous organisez a été modifié. " . $body,
+        $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " que vous organisez a été modifié. ",
             false, ['ROLE_USER'], $event->getOrganizer());
         foreach ($event->getParticipants() as $p) {
-            $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " auquel vous participez a été modifié. " . $body,
+            $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " auquel vous participez a été modifié. ",
                 true, ['ROLE_USER'], $p);
         }
     }
@@ -94,6 +94,7 @@ class NotifEventListener
         // this ends up sending an admin notif every time a user receives a message
 //        $this->notifManager->createMessage("L'utilisateur " . $user->getUserIdentifier() . " a été modifié.",
 //            false, ['ROLE_ADMIN'], null);
+        
         // INFINITE CALL ? sending a msg to a user is a db user update call
         // DO NOT SEND A MESSAGE TO A TARGET USER IN THE UPDATE LISTENER
 //        $this->notifManager->createMessage("Votre compte " . $user->getUserIdentifier() . " a été modifié.",
