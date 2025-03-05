@@ -43,6 +43,17 @@
                     <p>{{ 'lat, lon : ' ~ event.location.latitude ~ ', ' ~ event.location.longitude }}</p>
                     <p>{{ event.location.extraInfo }}</p>
                 </div>
+                {% if hasValidCoordinates and latitude is not null and longitude is not null %}
+                    <div id="event-map"
+                         style="height: 400px;"
+                         data-latitude="{{ latitude }}"
+                         data-longitude="{{ longitude }}"
+                         data-address="{{ event.location.name~', '~event.location.roadnumber ~ ' ' ~ event.location.roadname ~ ', ' ~ event.location.zipcode ~ ' ' ~ event.location.townname }}"
+                    ></div>
+
+                {% else %}
+                    <p>Localisation non disponible</p>
+                {% endif %}
 
                 <div class="mt-4">
                     <h4>Participants :</h4>
@@ -118,23 +129,39 @@
             </form>
             {% endif %}
         </div>
-        {#
-        <div>
-            <h1>{{ event.title }}</h1>
-            <p>{{ event.description }}</p>#}
 
-            {# Conteneur pour la carte #}
-        {#   <div id="map" style="height: 400px;"></div>
+        {% if hasValidCoordinates and latitude is not null and longitude is not null %}
+            <div id="event-map"
+                 style="height: 400px;"
+                 data-latitude="{{ latitude }}"
+                 data-longitude="{{ longitude }}"
+                 data-address="{{ event.location.name~', '~event.location.roadnumber ~ ' ' ~ event.location.roadname ~ ', ' ~ event.location.zipcode ~ ' ' ~ event.location.townname }}"
+            ></div>
 
-            {# Charger le contrôleur Stimulus pour la carte #}
-{#   {{ stimulus_controller('symfony/ux-map/map', {
-             {#      'center': [event.latitude, event.longitude],
-              {#     'zoom': 15,
-               {#    'markers': [
-                   {#    { 'position': [event.latitude, event.longitude], 'popup': event.title }
-           {#        ]
-            }) }}
-        </div>#}
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var mapElement = document.getElementById('event-map');
+                    var latitude = parseFloat(mapElement.getAttribute('data-latitude'));
+                    var longitude = parseFloat(mapElement.getAttribute('data-longitude'));
+                    var address = mapElement.getAttribute('data-address');
+
+
+                    var map = L.map(mapElement).setView([latitude, longitude], 13);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+
+                    L.marker([latitude, longitude])
+                        .addTo(map)
+                        .bindPopup(address)
+                        .openPopup();
+                });
+            </script>
+        {% else %}
+            <p>Localisation non disponible</p>
+        {% endif %}
 
     </div>
 {% endblock %}

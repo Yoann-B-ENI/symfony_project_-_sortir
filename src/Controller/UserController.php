@@ -83,7 +83,7 @@ final class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
             $this->addFlash('succes', 'Le profil a bien été modifié');
-            return $this->redirectToRoute('user_profile', ['id' => $user->getId()]);
+            return $this->redirectToRoute('user_details', ['id' => $user->getId()]);
         }
         return $this->render('user/update.html.twig', [
             'userForm' => $userForm,

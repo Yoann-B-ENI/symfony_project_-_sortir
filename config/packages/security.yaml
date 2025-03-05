@@ -44,7 +44,7 @@ security:
         # Restriction d'accès à /admin uniquement pour les utilisateurs ayant ROLE_ADMIN
         - { path: ^/admin, roles: ROLE_ADMIN }
         # Exiger que tous les autres utilisateurs soient connectés pour accéder au site
-        - { path: ^/(?!login|register|standBy|reset).* , roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/(?!login|register|standBy|verify|reset-password|reset).* , roles: IS_AUTHENTICATED_FULLY }
 
 
 when@test:
