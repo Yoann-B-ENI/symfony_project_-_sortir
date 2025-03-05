@@ -9,6 +9,8 @@
     {% block stylesheets %}
         <!-- Ajouter CSS de Select2 -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+        <!-- pour les cartes des events -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     {% endblock %}
 
     {% block javascripts %}
@@ -17,7 +19,11 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
         <!-- Ajouter JS de Select2 -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+        <!-- pour les cartes des events -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="{{ asset('bundles/symfonyruxmap/map.js') }}"></script>
     {% endblock %}
+
 </head>
 <body class="d-flex flex-column h-100">
 {% include 'partials/header.html.twig' %}

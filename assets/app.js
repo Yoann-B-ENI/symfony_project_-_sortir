@@ -7,4 +7,7 @@ import './bootstrap.js';
  */
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import 'leaflet/dist/leaflet.css';
+import '@symfony/ux-map';
+
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
