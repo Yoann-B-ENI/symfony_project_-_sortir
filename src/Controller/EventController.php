@@ -6,21 +6,25 @@ use App\Entity\Event;
 use App\Entity\User;
 use App\Form\EventFilterType;
 use App\Form\EventType;
+use App\Message\NotificationType;
 use App\Repository\StatusRepository;
 use App\Service\Censuror;
-
 use App\Service\EventStatusService;
 use App\Service\ImageManagement;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-
+use Symfony\Component\Messenger\MessageBusInterface;
+use App\Message\EventNotification;
 final class EventController extends AbstractController
 {
 
@@ -155,14 +159,14 @@ final class EventController extends AbstractController
         ]);
     }
 
-
+    //Ajout de la partie mail
     #[Route('/event/{id}/delete', name: 'event_delete')]
     public function delete(Request $request,
                            Event $event,
                            EntityManagerInterface $entityManager,
                            ImageManagement $imageManagement,
                            #[Autowire('%event_photo_dir%')] string $photoDir,
-
+                           MessageBusInterface $messageBus,
     ): Response
     {
         if ($this->getUser() !== $event->getOrganizer()) {
@@ -170,6 +174,12 @@ final class EventController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
+
+            $messageBus->dispatch(new EventNotification(
+                $event->getId(),
+                null,
+                NotificationType::CANCELLATION
+            ));
 
             $imageManagement->deleteImage($photoDir, $event->getId());
             $entityManager->remove($event);
@@ -228,6 +238,16 @@ final class EventController extends AbstractController
         ]);
     }
 
+
+    /** Gestion des participants aux évènements et envoie des mails
+     * @param int $eventId
+     * @param int $userId
+     * @param EntityManagerInterface $em
+     * @param MessageBusInterface $messageBus
+     * @return RedirectResponse
+     * @throws \DateMalformedStringException
+     */
+
     #[Route('/event/cancel/{id}', name: 'event_cancel')]
     public function cancelEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
     {
@@ -251,41 +271,73 @@ final class EventController extends AbstractController
         return $this->redirectToRoute('event'); // Rediriger après l'annulation
     }
 
-
     #[Route('event/addParticipant/{eventId}/{userId}', name: 'event_add_participant',
         requirements: ['eventId' => '\d+', 'userId' => '\d+'])]
-    public function addParticipant(int $eventId, int $userId, EntityManagerInterface $em): RedirectResponse
+    public function addParticipant(
+        int $eventId,
+        int $userId,
+        EntityManagerInterface $em,
+        MessageBusInterface $messageBus,
+
+    ): RedirectResponse
     {
+
         // could become a kind of join
         $event = $em->getRepository(Event::class)->findOneBy(['id' => $eventId]);
         $user = $this->getUser();
-        if ($user){
-            if (!$user->getId() == $userId){
+        if ($user) {
+            if (!$user->getId() == $userId) {
                 $user = $em->getRepository(User::class)->findOneBy(['id' => $userId]);
             }
+        } else {
+            $user = $em->getRepository(User::class)->findOneBy(['id' => $userId]);
         }
-        else{$user = $em->getRepository(User::class)->findOneBy(['id' => $userId]);}
 
-        if (!$event){
+        if (!$event) {
             dump('Error : event not found in addParticipant with eventid: ' . $eventId);
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
-        if (!$user){
+        if (!$user) {
             dump('Error : user not found in addParticipant with userid: ' . $userId);
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
-        if (count($event->getParticipants()) >= $event->getNbMaxParticipants() ){
+        if (count($event->getParticipants()) >= $event->getNbMaxParticipants()) {
             dump('Warn : event has already maximum nb of participants');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
-        if ($event->getParticipants()->contains($user)){
+        if ($event->getParticipants()->contains($user)) {
             dump('Warn : event already has this user as a participant');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
 
-        if ($event->getOrganizer()->getId() == $userId){dump('Warn : event organizer added themselves');}
+        if ($event->getOrganizer()->getId() == $userId) {
+            dump('Warn : event organizer added themselves');
+        }
+
         $event->addParticipant($user);
         $em->flush();
+
+        $messageBus->dispatch(new EventNotification(
+            $eventId,
+            $user->getId(),
+            NotificationType::REGISTRATION
+        ));
+
+        //Rappel 48h avant l'event
+        $startsAt = $event->getStartsAt();
+        $now = new \DateTimeImmutable();
+
+        $reminderTime =  $startsAt instanceof \DateTimeImmutable
+            ? $startsAt->sub(new \DateInterval('PT48H'))
+            : (new \DateTimeImmutable($startsAt->format('Y-m-d H:i:s')))->sub(new \DateInterval('PT48H'));
+
+        if ($reminderTime > $now && $startsAt > $now) {
+            $messageBus->dispatch(new EventNotification(
+                $eventId,
+                $user->getId(),
+                NotificationType::REMINDER
+            ));
+        }
 
         return $this->redirectToRoute('event_details', ['id' => $eventId]);
     }
@@ -316,6 +368,7 @@ final class EventController extends AbstractController
             dump('Warn : event already had no participants');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
+
         if (!$event->getParticipants()->contains($user)){
             dump('Warn : event already didn\'t have this user as a participant');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
@@ -327,7 +380,4 @@ final class EventController extends AbstractController
 
         return $this->redirectToRoute('event_details', ['id' => $eventId]);
     }
-
-
-
 }
