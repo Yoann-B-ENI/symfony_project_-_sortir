@@ -94,7 +94,7 @@ class NotifEventListener
         // this ends up sending an admin notif every time a user receives a message
 //        $this->notifManager->createMessage("L'utilisateur " . $user->getUserIdentifier() . " a été modifié.",
 //            false, ['ROLE_ADMIN'], null);
-        
+
         // INFINITE CALL ? sending a msg to a user is a db user update call
         // DO NOT SEND A MESSAGE TO A TARGET USER IN THE UPDATE LISTENER
 //        $this->notifManager->createMessage("Votre compte " . $user->getUserIdentifier() . " a été modifié.",
