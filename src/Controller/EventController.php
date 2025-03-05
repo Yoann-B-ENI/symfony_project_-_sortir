@@ -6,25 +6,31 @@ use App\Entity\Event;
 use App\Entity\User;
 use App\Form\EventFilterType;
 use App\Form\EventType;
+use App\Message\NotificationType;
+use App\Repository\StatusRepository;
 use App\Service\Censuror;
-
+use App\Service\EventStatusService;
 use App\Service\ImageManagement;
 use App\Service\NotifMessageManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-
+use Symfony\Component\Messenger\MessageBusInterface;
+use App\Message\EventNotification;
 final class EventController extends AbstractController
 {
 
     #[Route('/event/', name: 'event')]
-    public function index(Request $request,  EntityManagerInterface $entityManager): Response
+    public function index(Request $request,  EntityManagerInterface $entityManager, EventStatusService $eventStatusService ): Response
     {
 
         $form = $this->createForm(EventFilterType::class , null, [
@@ -34,24 +40,24 @@ final class EventController extends AbstractController
 
         $campus = $form->get('campus')->getData();
         $organizer = $form->get('organizer')->getData();
-        $category = $form->get('category')->getData();
+        $categories = $form->get('category')->getData();
         $status = $form->get('status')->getData();
 
         $campusId = $campus ? $campus->getId() : null;
         $organizerId = $organizer ? $organizer->getId() : null;
-        $categoryId = $category ? $category->getId() : null;
+        $categoryIds = $categories ? array_map(function($category) {
+            return $category->getId();
+        }, $categories->toArray()) : null;
         $statusId = $status ? $status->getId() : null;
         $userId = $this->getUser() ? $this->getUser()->getId() : null;
 
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryIds, $statusId, $userId);
 
-                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
 
-        } else {
-            $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+        foreach ($eventsList as $event) {
+            $eventStatusService->checkAndUpdates($event);
         }
-
         return $this->render('event/index.html.twig', [
             'eventsList' => $eventsList,
             'form' => $form,
@@ -111,6 +117,11 @@ final class EventController extends AbstractController
         ImageManagement $imageManagement,
     ): Response {
 
+        if ($event->getStatus()->getName() === 'Annulé') {
+            $this->addFlash('error', 'Cet événement a été annulé et ne peut plus être modifié.');
+            return $this->redirectToRoute('event'); // Redirection vers la liste
+        }
+
         if ($this->getUser() !== $event->getOrganizer()) {
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cet événement.');
         }
@@ -149,14 +160,14 @@ final class EventController extends AbstractController
         ]);
     }
 
-
+    //Ajout de la partie mail
     #[Route('/event/{id}/delete', name: 'event_delete')]
     public function delete(Request $request,
                            Event $event,
                            EntityManagerInterface $entityManager,
                            ImageManagement $imageManagement,
                            #[Autowire('%event_photo_dir%')] string $photoDir,
-
+                           MessageBusInterface $messageBus,
     ): Response
     {
         if ($this->getUser() !== $event->getOrganizer()) {
@@ -164,6 +175,12 @@ final class EventController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
+
+            $messageBus->dispatch(new EventNotification(
+                $event->getId(),
+                null,
+                NotificationType::CANCELLATION
+            ));
 
             $imageManagement->deleteImage($photoDir, $event->getId());
             $entityManager->remove($event);
@@ -173,50 +190,155 @@ final class EventController extends AbstractController
         return $this->redirectToRoute('event');
     }
 
-    #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
-    public function show(Event $event): Response
+    #[Route('/event/archive{id}', name: 'event_archive')]
+    public function ArchiveEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
     {
-        // database call in parameter name
+        // Récupérer le statut "Archivé"
+        $statusArchive = $statusRepository->findOneBy(['name' => 'Archivé']);
+
+        // Vérifier si le statut existe
+        if (!$statusArchive) {
+            $this->addFlash('error', 'Le statut Archivé n\'existe pas.');
+            return $this->redirectToRoute('event'); // Rediriger vers la liste des événements
+        }
+
+        // Modifier le statut de l'événement
+        $event->setStatus($statusArchive);
+        $entityManager->persist($event);
+        $entityManager->flush();
+
+        // Message de confirmation
+        $this->addFlash('success', 'L\'événement a été archivé.');
+
+        return $this->redirectToRoute('event'); // Rediriger après l'archivage
+    }
+
+    #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
+    public function show(Event $event, EventStatusService $eventStatusService): Response
+    {
+        $statusUpdated = $eventStatusService->checkAndUpdates($event);
+
+
+        if ($statusUpdated) {
+            $this->addFlash('info', 'Le statut de l\'événement a été mis à jour automatiquement.');
+        }
+
+        $location = $event->getLocation();
+        $hasValidCoordinates = $location &&
+            $location->getLatitude() !== null &&
+            $location->getLongitude() !== null;
+
+
+
         return $this->render('event/details.html.twig', [
             'event' => $event,
             'currentUser' => $this->getUser(),
+            'hasValidCoordinates' => $hasValidCoordinates,
+            'latitude' => $hasValidCoordinates ? floatval($location->getLatitude()) : null,
+            'longitude' => $hasValidCoordinates ? floatval($location->getLongitude()) : null
         ]);
+    }
+
+
+    /** Gestion des participants aux évènements et envoie des mails
+     * @param int $eventId
+     * @param int $userId
+     * @param EntityManagerInterface $em
+     * @param MessageBusInterface $messageBus
+     * @return RedirectResponse
+     * @throws \DateMalformedStringException
+     */
+
+    #[Route('/event/cancel/{id}', name: 'event_cancel')]
+    public function cancelEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        // Récupérer le statut "Annulé"
+        $statusAnnule = $statusRepository->findOneBy(['name' => 'Annulé']);
+
+        // Vérifier si le statut existe
+        if (!$statusAnnule) {
+            $this->addFlash('error', 'Le statut Annulé n\'existe pas.');
+            return $this->redirectToRoute('event'); // Rediriger vers la liste des événements
+        }
+
+        // Modifier le statut de l'événement
+        $event->setStatus($statusAnnule);
+        $entityManager->persist($event);
+        $entityManager->flush();
+
+        // Message de confirmation
+        $this->addFlash('success', 'L\'événement a été annulé.');
+
+        return $this->redirectToRoute('event'); // Rediriger après l'annulation
     }
 
     #[Route('event/addParticipant/{eventId}/{userId}', name: 'event_add_participant',
         requirements: ['eventId' => '\d+', 'userId' => '\d+'])]
-    public function addParticipant(int $eventId, int $userId, EntityManagerInterface $em): RedirectResponse
+    public function addParticipant(
+        int $eventId,
+        int $userId,
+        EntityManagerInterface $em,
+        MessageBusInterface $messageBus,
+
+    ): RedirectResponse
     {
+
         // could become a kind of join
         $event = $em->getRepository(Event::class)->findOneBy(['id' => $eventId]);
         $user = $this->getUser();
-        if ($user){
-            if (!$user->getId() == $userId){
+        if ($user) {
+            if (!$user->getId() == $userId) {
                 $user = $em->getRepository(User::class)->findOneBy(['id' => $userId]);
             }
+        } else {
+            $user = $em->getRepository(User::class)->findOneBy(['id' => $userId]);
         }
-        else{$user = $em->getRepository(User::class)->findOneBy(['id' => $userId]);}
 
-        if (!$event){
+        if (!$event) {
             dump('Error : event not found in addParticipant with eventid: ' . $eventId);
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
-        if (!$user){
+        if (!$user) {
             dump('Error : user not found in addParticipant with userid: ' . $userId);
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
-        if (count($event->getParticipants()) >= $event->getNbMaxParticipants() ){
+        if (count($event->getParticipants()) >= $event->getNbMaxParticipants()) {
             dump('Warn : event has already maximum nb of participants');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
-        if ($event->getParticipants()->contains($user)){
+        if ($event->getParticipants()->contains($user)) {
             dump('Warn : event already has this user as a participant');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
 
-        if ($event->getOrganizer()->getId() == $userId){dump('Warn : event organizer added themselves');}
+        if ($event->getOrganizer()->getId() == $userId) {
+            dump('Warn : event organizer added themselves');
+        }
+
         $event->addParticipant($user);
         $em->flush();
+
+        $messageBus->dispatch(new EventNotification(
+            $eventId,
+            $user->getId(),
+            NotificationType::REGISTRATION
+        ));
+
+        //Rappel 48h avant l'event
+        $startsAt = $event->getStartsAt();
+        $now = new \DateTimeImmutable();
+
+        $reminderTime =  $startsAt instanceof \DateTimeImmutable
+            ? $startsAt->sub(new \DateInterval('PT48H'))
+            : (new \DateTimeImmutable($startsAt->format('Y-m-d H:i:s')))->sub(new \DateInterval('PT48H'));
+
+        if ($reminderTime > $now && $startsAt > $now) {
+            $messageBus->dispatch(new EventNotification(
+                $eventId,
+                $user->getId(),
+                NotificationType::REMINDER
+            ));
+        }
 
         return $this->redirectToRoute('event_details', ['id' => $eventId]);
     }
@@ -247,6 +369,7 @@ final class EventController extends AbstractController
             dump('Warn : event already had no participants');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
         }
+
         if (!$event->getParticipants()->contains($user)){
             dump('Warn : event already didn\'t have this user as a participant');
             return $this->redirectToRoute('event_details', ['id' => $eventId]);
@@ -258,7 +381,4 @@ final class EventController extends AbstractController
 
         return $this->redirectToRoute('event_details', ['id' => $eventId]);
     }
-
-
-
 }

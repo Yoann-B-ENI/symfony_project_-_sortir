@@ -49,8 +49,10 @@ final class LocationController extends AbstractController
             return $this->redirectToRoute('app_location');
         }
 
-        return $this->render('location/update.html.twig',
-            ['locForm' => $locForm]);
+        return $this->render('location/update.html.twig', [
+            'locForm' => $locForm,
+            'title' => 'Modification d\'une adresse',
+            ]);
     }
 
     #[Route('location/delete/{id}', name: 'app_location_delete', requirements: ['id' => '\d+'])]

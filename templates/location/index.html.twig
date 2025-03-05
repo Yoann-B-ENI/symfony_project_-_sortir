@@ -3,42 +3,119 @@
 {% block title %}Lieux d'évènements{% endblock %}
 
 {% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Liste des lieux</h1>
 
-    {% if locations is empty %}
-        <div class="alert alert-info text-center">
-            <p>Aucun lieu n'existe.</p>
-        </div>
-    {% else %}
-
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            <strong>Liste des lieux : </strong>
-            <table style="border: 2px solid black">
-                <thead style="background-color: rgb(228 240 245)">
-                <tr>
-                    <th style="border: 1px solid black">Nom du lieu</th>
-                    <th style="border: 1px solid black">Adresse</th>
-                    <th style="border: 1px solid black">Ville</th>
-                    <th style="border: 1px solid black">Géoloc (lat, lon)</th>
-                    <th style="border: 1px solid black">Détails</th>
-                </tr>
-                </thead>
-                <tbody>
+        {% if locations is empty %}
+            <div class="alert alert-info text-center">
+                <p>Aucun lieu n'existe.</p>
+            </div>
+        {% else %}
+            <div class="row">
                 {% for l in locations %}
-                    <tr>
-                        <td style="border: 1px solid black">{{ l.name }}</td>
-                        <td style="border: 1px solid black">{{ l.roadNumber ~ ' ' ~ l.roadName }}</td>
-                        <td style="border: 1px solid black">{{ l.zipCode ~ ' ' ~ l.townName }}</td>
-                        <td style="border: 1px solid black">{{ l.latitude ~ ', ' ~ l.longitude }}</td>
-                        <td style="border: 1px solid black">{{ l.extraInfo }}</td>
-                    </tr>
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow">
+                            <div class="card-header bg-dark text-white">
+                                <h5 class="mb-0">{{ l.name }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item"><strong>Adresse :</strong> {{ l.roadNumber ~ ' ' ~ l.roadName }}</li>
+                                    <li class="list-group-item"><strong>Ville :</strong> {{ l.zipCode ~ ' ' ~ l.townName }}</li>
+                                    <li class="list-group-item"><strong>Géolocalisation :</strong> {{ l.latitude ~ ', ' ~ l.longitude }}</li>
+                                    <li class="list-group-item"><strong>Détails :</strong> <span class="fw-light">{% if l.extraInfo %}{{ l.extraInfo }}{% else %}<em>Non spécifié</em>{% endif %}</span></li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
                 {% endfor %}
-                </tbody>
-                <tfoot style="background-color: rgb(228 240 245)">
-                </tfoot>
-            </table>
+            </div>
+        {% endif %}
+
+        <div class="card shadow mt-5">
+            <div class="card-body">
+                <h2 class="mb-4">Ajouter un lieu</h2>
+                {{ form_start(locForm, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                <div class="mb-3">
+                    {{ form_label(locForm.name, 'Nom du lieu *') }}
+                    {{ form_widget(locForm.name, { 'attr': {'class': 'form-control', 'placeholder': 'Nom lieu'} }) }}
+                    {% if locForm.name.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in locForm.name.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.roadnumber, 'Numéro de rue') }}
+                    {{ form_widget(locForm.roadnumber, { 'attr': {'class': 'form-control', 'placeholder': '123'} }) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.roadname, 'Nom de la rue') }}
+                    {{ form_widget(locForm.roadname, { 'attr': {'class': 'form-control', 'placeholder': 'Rue de ...'} }) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.zipcode, 'Code postal *') }}
+                    {{ form_widget(locForm.zipcode, { 'attr': {'class': 'form-control', 'placeholder': '00000'} }) }}
+                    {% if locForm.zipcode.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in locForm.zipcode.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.townname, 'Nom de la ville *') }}
+                    {{ form_widget(locForm.townname, { 'attr': {'class': 'form-control', 'placeholder': 'Ville'} }) }}
+                    {% if locForm.townname.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in locForm.townname.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.latitude, 'Latitude *') }}
+                    {{ form_widget(locForm.latitude, { 'attr': {'class': 'form-control', 'placeholder': '45.1234'} }) }}
+                    {% if locForm.latitude.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in locForm.latitude.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.longitude, 'Longitude *') }}
+                    {{ form_widget(locForm.longitude, { 'attr': {'class': 'form-control', 'placeholder': '1.1234'} }) }}
+                    {% if locForm.longitude.vars.errors|length > 0 %}
+                        <div class="text-danger">
+                            {% for error in locForm.longitude.vars.errors %}
+                                <p>{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(locForm.extraInfo, 'Détails du lieu') }}
+                    {{ form_widget(locForm.extraInfo, { 'attr': {'class': 'form-control', 'placeholder': 'Informations supplémentaires sur le lieu (numéro de salle, ...)'} }) }}
+                </div>
+
+                <button type="submit" class="btn btn-success">Enregistrer</button>
+                {{ form_end(locForm) }}
+            </div>
         </div>
-    {% endif %}
-
-    {{ form(locForm) }}
-
+    </div>
 {% endblock %}

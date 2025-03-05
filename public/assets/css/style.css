@@ -1,0 +1,12 @@
+.table-responsive {
+    max-height: 300px; /* Ajuste la hauteur max selon ton besoin */
+    overflow-y: auto;
+}
+
+.table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    background-color: #343a40; /* Garde l'en-tête visible */
+    color: white;
+}

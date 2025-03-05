@@ -51,7 +51,11 @@
                             <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
                             <td>
                                 <a href="{{ path('admin_details_user', {'id': p.id}) }}" class="btn btn-primary btn-sm">Voir</a>
-                                <a href="{{ path('admin_event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Retirer</a>
+                                {% if event.status.name not in ['Passé', 'Archivé'] %}
+                                    <a href="{{ path('admin_event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Retirer</a>
+                                {% else %}
+                                    <button class="btn btn-danger btn-sm" disabled>Retirer</button>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -83,7 +87,15 @@
                                 <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
                                 <td>
                                     <a href="{{ path('admin_details_user', {'id': p.id}) }}" class="btn btn-primary btn-sm">Voir</a>
-                                    <a href="{{ path('admin_event_add_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-success btn-sm">Ajouter</a>
+                                    {% if 'ROLE_BAN' not in p.roles %}
+                                        {% if event.status.name not in ['Passé', 'Archivé', 'Annulé'] %}
+                                            <a href="{{ path('admin_event_add_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-success btn-sm">Ajouter</a>
+                                        {% else %}
+                                            <button class="btn btn-success btn-sm" disabled>Ajouter</button>
+                                        {% endif %}
+                                    {% else %}
+                                        <button class="btn btn-success btn-sm" disabled>Ajouter</button>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

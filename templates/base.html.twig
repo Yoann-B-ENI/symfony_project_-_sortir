@@ -1,25 +1,34 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="h-100">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Welcome!{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
 
     {% block stylesheets %}
         <!-- Ajouter CSS de Select2 -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+        <!-- pour les cartes des events -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     {% endblock %}
 
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {# Ajouter Bootstrap JS #}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
         <!-- Ajouter JS de Select2 -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+        <!-- pour les cartes des events -->
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="{{ asset('bundles/symfonyruxmap/map.js') }}"></script>
     {% endblock %}
-</head>
-<body>
-{% include 'partials/header.html.twig' %}
-<main>
 
+</head>
+<body class="d-flex flex-column h-100">
+{% include 'partials/header.html.twig' %}
+
+<main class="flex-shrink-0 flex-grow-1">
     {# Affichage des messages flashs - success, error, warning, etc. #}
     {% for label, messages in app.flashes %}
         {% for message in messages %}
@@ -29,11 +38,9 @@
         {% endfor %}
     {% endfor %}
 
-    {% block body %}
-
-
-    {% endblock %}
+    {% block body %}{% endblock %}
 </main>
+
 {% include 'partials/footer.html.twig' %}
 </body>
 </html>

@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de l'adresse{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Détails de l'adresse</h1>
+
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">{{ location.name }}</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>Nom du lieu :</strong> {{ location.name }}</li>
+                    <li class="list-group-item"><strong>Numéro de rue :</strong> <span class="fw-light">{% if location.roadnumber %}{{ location.roadnumber }}{% else %}<em>Non spécifié</em>{% endif %}</span></li>
+                    <li class="list-group-item"><strong>Nom de la rue :</strong> {{ location.roadname }}</li>
+                    <li class="list-group-item"><strong>Code postal :</strong> {{ location.zipcode }}</li>
+                    <li class="list-group-item"><strong>Nom de la ville :</strong> {{ location.townname }}</li>
+                    <li class="list-group-item"><strong>Latitude :</strong> {{ location.latitude }}</li>
+                    <li class="list-group-item"><strong>Longitude :</strong> {{ location.longitude }}</li>
+                    <li class="list-group-item"><strong>Détails supplémentaires :</strong> <span class="fw-light">{% if location.extraInfo %}{{ location.extraInfo }}{% else %}<em>Non spécifié</em>{% endif %}</span></li>
+                </ul>
+            </div>
+
+            <div class="card-footer text-end">
+
+                <a href="{{ path('admin') }}" class="btn btn-secondary">Retour</a>
+                <a href="{{ path('admin_edit_location', {'id': location.id}) }}" class="btn btn-warning">Modifier</a>
+                <form action="{{ path('admin_delete_location', {'id': location.id}) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette adresse ?');">
+                        Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

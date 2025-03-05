@@ -65,7 +65,7 @@ class EventRepository extends ServiceEntityRepository
 //        return $qb->getQuery()->getResult();
 //    }
 
-    public function findByFilters(?int $campusId = null, ?int $organizerId = null, ?int $categoryId = null, ?int $statusId =null, ?int $userId= null): array
+    public function findByFilters(?int $campusId = null, ?int $organizerId = null, ?array $categoryIds = null, ?int $statusId =null, ?int $userId= null): array
     {
         $qb = $this->createQueryBuilder('e');
 
@@ -79,11 +79,11 @@ class EventRepository extends ServiceEntityRepository
                 ->setParameter('organizerId', $organizerId);
         }
 
-        if (!is_null($categoryId)) {
+        if (!is_null($categoryIds)) {
             // Si c'est une relation ManyToMany
             $qb->join('e.categories', 'c')
-                ->andWhere('c.id = :categoryId')
-                ->setParameter('categoryId', $categoryId);
+                ->andWhere('c.id IN (:categoryIds)')
+                ->setParameter('categoryIds', $categoryIds);
         }
 
         if (!is_null($statusId)) {
@@ -101,13 +101,17 @@ class EventRepository extends ServiceEntityRepository
                     $qb->andWhere('1 = 0');
                 }
             }
-        }else{
-            $status_brouillon =  $this->getEntityManager()->getRepository(Status::class)->findOneBy(['name' =>'Brouillon']);
-            $qb->andWhere('(e.status = :brouillonId and e.organizer = :userId) or (e.status > :brouillonId)')
-                ->setParameter('brouillonId', $status_brouillon->getId()) // status_brouillon.id
-                ->setParameter('userId', $userId);
-        }
+        } else {
+            $statusBrouillon = $this->getEntityManager()->getRepository(Status::class)->findOneBy(['name' => 'Brouillon']);
+            $statusArchive = $this->getEntityManager()->getRepository(Status::class)->findOneBy(['name' => 'Archivé']);
 
+            if ($statusBrouillon && $statusArchive) {
+                $qb->andWhere('(e.status = :brouillonId and e.organizer = :userId) or (e.status != :brouillonId and e.status != :archiveId)')
+                    ->setParameter('brouillonId', $statusBrouillon->getId())
+                    ->setParameter('archiveId', $statusArchive->getId()) // Exclure les événements archivés
+                    ->setParameter('userId', $userId);
+            }
+        }
 
         return $qb->getQuery()->getResult();
     }
@@ -115,3 +119,27 @@ class EventRepository extends ServiceEntityRepository
 
 
 }
+
+
+
+//        if (!is_null($statusId)) {
+//            $qb->andWhere('e.status = :statusId')
+//                ->setParameter('statusId', $statusId);
+//
+//            // Vérifier si le statut est "Brouillon"
+//            $status = $this->getEntityManager()->getRepository(Status::class)->find($statusId);
+//            if ($status && strtolower($status->getName()) === 'brouillon') {
+//                if (!is_null($userId)) {
+//                    $qb->andWhere('e.organizer = :userId')
+//                        ->setParameter('userId', $userId);
+//                } else {
+//                    // Personne ne doit voir les brouillons s'il n'est pas connecté
+//                    $qb->andWhere('1 = 0');
+//                }
+//            }
+//        }else{
+//            $status_brouillon =  $this->getEntityManager()->getRepository(Status::class)->findOneBy(['name' =>'Brouillon']);
+//            $qb->andWhere('(e.status = :brouillonId and e.organizer = :userId) or (e.status > :brouillonId)')
+//                ->setParameter('brouillonId', $status_brouillon->getId()) // status_brouillon.id
+//                ->setParameter('userId', $userId);
+//        }
