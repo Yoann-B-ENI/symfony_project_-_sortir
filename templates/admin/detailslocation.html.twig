@@ -20,6 +20,21 @@
                     <li class="list-group-item"><strong>Latitude :</strong> {{ location.latitude }}</li>
                     <li class="list-group-item"><strong>Longitude :</strong> {{ location.longitude }}</li>
                     <li class="list-group-item"><strong>Détails supplémentaires :</strong> <span class="fw-light">{% if location.extraInfo %}{{ location.extraInfo }}{% else %}<em>Non spécifié</em>{% endif %}</span></li>
+
+                    <h5 class="mt-4">Événements organisés à cette localisation :</h5>
+                    {% if events is not empty %}
+                        <ul class="list-group">
+                            {% for event in events %}
+                                <li class="list-group-item">
+                                    <a href="{{ path('admin_details_event', {'id': event.id}) }}">{{ event.title }}</a>
+                                    - {{ event.startsAt|date('d/m/Y H:i') }} à {{ event.endsAt|date('d/m/Y H:i') }} - {{ event.status.name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Aucun événement organisé.</p>
+                    {% endif %}
+
                 </ul>
             </div>
 
