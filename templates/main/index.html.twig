@@ -1,9 +1,55 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil{% endblock %}
+{% block title %}Accueil | {{ parent() }}{% endblock %}
 
 {% block body %}
+    <div class="container mt-5">
+        <style>
+            .img-fluid {
+                border-radius: 50%;
+            }
+        </style>
 
-    <h2>Accueil</h2>
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h2>Bienvenue sur notre plateforme d'événements étudiants !</h2>
+                <p>Créez, découvrez et participez à des événements passionnants organisés par vos camarades.</p>
+            </div>
+        </div>
 
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm text-center">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+                        <img src="https://media.licdn.com/dms/image/v2/C4E03AQHRermIB0eTDQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1605889969001?e=1746662400&v=beta&t=DXLNr8tZ8XOGzGwAGYraTPw3-NPlfyu0mswXTz85CTQ" class="img-fluid" alt="Image d'événement">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Explorez les événements</h5>
+                        <p class="card-text">Découvrez les événements créés par la communauté étudiante. Trouvez des événements intéressants auxquels vous pouvez participer ou vous inspirer pour vos propres créations.</p>
+                        <a href="{{ path('event') }}" class="btn btn-primary">Voir les événements</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm text-center">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+                        <img src="https://media.licdn.com/dms/image/v2/D5603AQG-BzSeRMhsXA/profile-displayphoto-shrink_200_200/B56ZVct.LLGQAg-/0/1741017318183?e=1746662400&v=beta&t=3-1B0g60Wy1ir-JDYD2uQyg--R5aHjc-5JeciygIIlA" class="img-fluid" alt="Image création d'événement">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Créer un événement</h5>
+                        <p class="card-text">Ajoutez vos propres événements et partagez-les avec vos camarades. Laissez libre cours à votre créativité et organisez un événement mémorable.</p>
+                        <a href="{{ path('event_create') }}" class="btn btn-success">Créer un nouvel événement</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <h3>Notre vision</h3>
+                <p class="lead">Nous croyons que chaque étudiant a une idée unique à partager. Rejoignez notre plateforme pour découvrir, créer et participer à des événements qui enrichiront votre expérience universitaire.</p>
+            </div>
+        </div>
+    </div>
 {% endblock %}

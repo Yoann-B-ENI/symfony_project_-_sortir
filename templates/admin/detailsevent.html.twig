@@ -19,7 +19,10 @@
                         <a href="{{ path('admin_details_user', {'id': event.organizer.id}) }}">{{ event.organizer.username }}</a>
                     </li>
                     <li class="list-group-item"><strong>Campus :</strong> {{ event.campus.name }}</li>
-                    <li class="list-group-item"><strong>Localisation :</strong> {{ event.location.name }}</li>
+                    <li class="list-group-item">
+                        <strong>Localisation :</strong>
+                        <a href="{{ path('admin_details_location', {'id' : event.location.id}) }}">{{ event.location.name }}</a>
+                        </li>
                     <li class="list-group-item"><strong>Titre :</strong> {{ event.title }}</li>
                     <li class="list-group-item"><strong>Description :</strong> {{ event.description }}</li>
                     <li class="list-group-item"><strong>Début :</strong> {{ event.startsAt|date('d/m/Y H:i') }}</li>
@@ -31,42 +34,44 @@
                 <form method="GET" action="{{ path('admin_details_event', {'id': event.id}) }}">
                     <div class="input-group mb-3">
                         <input type="text" class="form-control" placeholder="Rechercher parmi les participants (pseudo, nom de famille, ou email)" name="searchParticipant" value="{{ app.request.get('searchParticipant') }}">
+                        <input type="hidden" name="searchUsername" value="{{ app.request.get('searchUsername') }}">
                         <button class="btn btn-outline-secondary" type="submit">Rechercher</button>
                     </div>
                 </form>
 
                 <div class="table-scrollable" style="max-height: 300px; overflow-y: scroll;"> <!-- Barre de défilement -->
-                <table class="table table-bordered">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Nom d'utilisateur</th>
-                        <th>Prénom Nom</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for p in participants %}
+                    <table class="table table-bordered">
+                        <thead class="table-light">
                         <tr>
-                            <td>{{ p.username }}</td>
-                            <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
-                            <td>
-                                <a href="{{ path('admin_details_user', {'id': p.id}) }}" class="btn btn-primary btn-sm">Voir</a>
-                                {% if event.status.name not in ['Passé', 'Archivé'] %}
-                                    <a href="{{ path('admin_event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Retirer</a>
-                                {% else %}
-                                    <button class="btn btn-danger btn-sm" disabled>Retirer</button>
-                                {% endif %}
-                            </td>
+                            <th>Nom d'utilisateur</th>
+                            <th>Prénom Nom</th>
+                            <th>Action</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {% for p in participants %}
+                            <tr>
+                                <td>{{ p.username }}</td>
+                                <td>{{ p.firstName ~ ' ' ~ p.lastName }}</td>
+                                <td>
+                                    <a href="{{ path('admin_details_user', {'id': p.id}) }}" class="btn btn-primary btn-sm">Voir</a>
+                                    {% if event.status.name not in ['Passé', 'Archivé'] %}
+                                        <a href="{{ path('admin_event_remove_participant', {'eventId': event.id, 'userId': p.id}) }}" class="btn btn-danger btn-sm">Retirer</a>
+                                    {% else %}
+                                        <button class="btn btn-danger btn-sm" disabled>Retirer</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
 
                 <h5 class="mt-4">Ajouter un participant</h5>
                 <form method="GET" action="{{ path('admin_details_event', {'id': event.id}) }}">
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Rechercher parmi les participants (pseudo, nom de famille, ou email)" name="searchUsername" value="{{ app.request.get('searchUsername') }}">
+                        <input type="text" class="form-control" placeholder="Rechercher parmi les participants à ajouter (pseudo, nom de famille, ou email)" name="searchUsername" value="{{ app.request.get('searchUsername') }}">
+                        <input type="hidden" name="searchParticipant" value="{{ app.request.get('searchParticipant') }}">
                         <button class="btn btn-outline-secondary" type="submit">Rechercher</button>
                     </div>
                 </form>

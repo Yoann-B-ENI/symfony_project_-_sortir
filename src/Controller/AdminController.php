@@ -10,37 +10,59 @@ use App\Form\AdminAddEventType;
 use App\Form\AdminEditEventType;
 use App\Form\AdminAddUserType;
 use App\Form\AdminEditUserType;
+use App\Form\ChangePasswordFormType;
 use App\Form\EventFilterType;
 use App\Form\EventType;
 use App\Form\LocationType;
 use App\Repository\CampusRepository;
 use App\Repository\EventRepository;
 use App\Repository\LocationRepository;
+use App\Repository\ResetPasswordRequestRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-
+use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
+use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 
 final class AdminController extends AbstractController
 {
+
+    private $entityManager;
+    private $resetPasswordHelper;
+
+    // Injection de l'EntityManagerInterface et ResetPasswordHelperInterface via le constructeur
+    public function __construct(EntityManagerInterface $entityManager, ResetPasswordHelperInterface $resetPasswordHelper)
+    {
+        $this->entityManager = $entityManager;
+        $this->resetPasswordHelper = $resetPasswordHelper;
+    }
+
     #[Route('/admin', name: 'admin', methods: ['GET', 'POST'])]
     public function index(UserRepository $userRepository, EventRepository $eventRepository, LocationRepository $locationRepo, Request $request, EntityManagerInterface $entityManager): Response
     {
-        // Récupérer la valeur de la recherche
+        // Récupérer les valeurs de recherche
         $searchTerm = $request->query->get('searchTerm');
+        $searchLocation = $request->query->get('searchLocation');
 
+        // Recherche des utilisateurs et événements
         if ($searchTerm) {
             // Recherche des utilisateurs par username, lastname ou email
             $users = $userRepository->createQueryBuilder('u')
@@ -62,15 +84,27 @@ final class AdminController extends AbstractController
             $events = $eventRepository->findAll();
         }
 
-        $locations = $locationRepo->findAll();
+        // Recherche des lieux (par zipcode ou townname)
+        if ($searchLocation) {
+            $locations = $locationRepo->createQueryBuilder('l')
+                ->where('l.zipcode LIKE :search OR l.townname LIKE :search')
+                ->setParameter('search', '%' . $searchLocation . '%')
+                ->getQuery()
+                ->getResult();
+        } else {
+            // Si aucune recherche, récupérer tous les lieux
+            $locations = $locationRepo->findAll();
+        }
 
         return $this->render('admin/index.html.twig', [
             'users' => $users,
             'events' => $events,
             'locations' => $locations,
             'searchTerm' => $searchTerm,
+            'searchLocation' => $searchLocation,
         ]);
     }
+
 
     #[Route('/admin/details/user/{id}', name: 'admin_details_user', requirements: ['id' => '\d+'])]
     public function details_user(int $id, UserRepository $userRepository, EventRepository $eventRepository): Response
@@ -91,7 +125,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/delete/user/{id}', name: 'admin_delete_user', methods: ['POST'])]
-    public function delete(int $id, UserRepository $userRepository, EventRepository $eventRepository, EntityManagerInterface $entityManager): Response
+    public function delete(int $id, UserRepository $userRepository, EventRepository $eventRepository, EntityManagerInterface $entityManager, ResetPasswordRequestRepository $resetPasswordRequestRepository): Response
     {
         $user = $userRepository->find($id);
 
@@ -105,6 +139,13 @@ final class AdminController extends AbstractController
         // Supprimer les événements
         foreach ($events as $event) {
             $entityManager->remove($event);
+        }
+
+        // Supprimer les tokens de réinitialisation de mot de passe de la base de données
+        $resetPasswordRequests = $resetPasswordRequestRepository->findBy(['user' => $user]);
+
+        foreach ($resetPasswordRequests as $resetPasswordRequest) {
+            $entityManager->remove($resetPasswordRequest);
         }
 
         // Supprimer l'utilisateur
@@ -145,7 +186,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/add/user', name: 'admin_add_user')]
-    public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
+    public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, MailerInterface $mailer, UrlGeneratorInterface $urlGenerator): Response
     {
         $user = new User();
 
@@ -179,6 +220,22 @@ final class AdminController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            // Générer un token de réinitialisation de mot de passe
+            $resetToken = $this->resetPasswordHelper->generateResetToken($user);
+
+            // Récupérer le token réel sous forme de chaîne de caractères
+            $resetTokenString = $resetToken->getToken(); // Utilisez getToken() pour obtenir la chaîne
+
+            // Envoi de l'email
+            $email = (new Email())
+                ->from('noreply@sortir.com')
+                ->to($user->getEmail())
+                ->subject('Votre compte a été créé')
+                ->html('<p>Votre compte a été créé. Cliquez sur le lien ci-dessous pour définir un nouveau mot de passe lors de votre première connexion :</p>
+        <a href="' . $urlGenerator->generate('reset_password', ['token' => $resetTokenString], UrlGeneratorInterface::ABSOLUTE_URL) . '">Réinitialiser mon mot de passe</a>');
+
+            $mailer->send($email);
+
             // Message de succès
             $this->addFlash('success', 'Utilisateur ajouté avec succès.');
 
@@ -192,6 +249,52 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/reset-password/{token}', name: 'reset_password')]
+    public function resetPassword(
+        string $token,
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher
+    ): Response {
+        // Valider le token et récupérer l'utilisateur
+        try {
+            // Validation du token et récupération de l'utilisateur associé
+            $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
+        } catch (ResetPasswordExceptionInterface $e) {
+            $this->addFlash('error', 'Le lien de réinitialisation est invalide ou a expiré.');
+            return $this->redirectToRoute('app_login'); // Rediriger ou afficher un message d'erreur
+        }
+
+        // Créer un formulaire de changement de mot de passe
+        $form = $this->createForm(ChangePasswordFormType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer le mot de passe du formulaire
+            $newPassword = $form->get('plainPassword')->getData();
+            $hashedPassword = $passwordHasher->hashPassword($user, $newPassword); // Hacher le mot de passe
+            $user->setPassword($hashedPassword);
+
+            // Supprimer le token de réinitialisation après utilisation
+            $this->resetPasswordHelper->removeResetRequest($token);
+
+            // Sauvegarder le nouveau mot de passe dans la base de données
+            $this->entityManager->flush();
+
+            // Nettoyer la session après reset
+            $request->getSession()->remove('ResetPasswordToken');
+
+            $this->addFlash('success', 'Votre mot de passe a été réinitialisé avec succès.');
+
+            // Rediriger vers la page de connexion
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Afficher le formulaire dans la vue
+        return $this->render('reset_password/reset.html.twig', [
+            'resetForm' => $form,
+            'user' => $user,
+        ]);
+    }
 
     #[Route('/admin/details/event/{id}', name: 'admin_details_event', requirements: ['id' => '\d+'])]
     public function details_event(int $id, EventRepository $eventRepository, UserRepository $userRepository, Request $request): Response
@@ -202,8 +305,8 @@ final class AdminController extends AbstractController
             throw $this->createNotFoundException('Cet évènement n\'existe pas.');
         }
 
-        // Récupérer la valeur de la recherche du formulaire GET pour les utilisateurs à ajouter
-        $searchUsername = $request->query->get('searchUsername');
+        // Récupérer la valeur de la recherche du formulaire GET pour les utilisateurs à ajouter (searchUsername)
+        $searchUsername = $request->query->get('searchUsername', '');  // Valeur par défaut vide
 
         // Si une recherche est effectuée, on filtre les utilisateurs
         if ($searchUsername) {
@@ -222,8 +325,8 @@ final class AdminController extends AbstractController
         // Filtrer les utilisateurs qui ne sont pas encore participants
         $nonParticipants = array_filter($users, fn($user) => !$event->getParticipants()->contains($user));
 
-        // Récupérer la valeur de la recherche du formulaire GET pour les participants
-        $searchParticipant = $request->query->get('searchParticipant');
+        // Récupérer la valeur de la recherche du formulaire GET pour les participants (searchParticipant)
+        $searchParticipant = $request->query->get('searchParticipant', '');  // Valeur par défaut vide
 
         // Si une recherche est effectuée parmi les participants, on filtre
         if ($searchParticipant) {
@@ -237,14 +340,15 @@ final class AdminController extends AbstractController
             $participants = $event->getParticipants();
         }
 
+        // Rendre la vue avec les résultats et les valeurs des recherches
         return $this->render('admin/detailsevent.html.twig', [
             'event' => $event,
             'users' => $nonParticipants, // Passer les utilisateurs non participants
             'participants' => $participants, // Passer les participants filtrés
+            'searchUsername' => $searchUsername, // Passer la valeur de recherche des utilisateurs à ajouter
+            'searchParticipant' => $searchParticipant, // Passer la valeur de recherche des participants
         ]);
     }
-
-
 
     #[Route('/admin/delete/event/{id}', name: 'admin_delete_event', methods: ['POST'])]
     public function deleteevent(int $id, EventRepository $eventRepository, EntityManagerInterface $entityManager): Response
@@ -539,6 +643,7 @@ final class AdminController extends AbstractController
     public function details_location(int $id, LocationRepository $locationRepository, EventRepository $eventRepository): Response
     {
         $location = $locationRepository->find($id);
+        $events = $eventRepository->findBy(['location' => $location]);
 
         if (!$location) {
             throw $this->createNotFoundException('Cette adresse n\'existe pas.');
@@ -546,6 +651,7 @@ final class AdminController extends AbstractController
 
         return $this->render('admin/detailslocation.html.twig', [
             'location' => $location,
+            'events' => $events,
         ]);
     }
 
