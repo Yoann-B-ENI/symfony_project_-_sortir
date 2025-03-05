@@ -16,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
 #[UniqueEntity(fields: ['email'], message: 'Il existe déjà un compte associé à cet email.')]
 #[UniqueEntity(fields: ['username'], message: 'Ce nom d\'utilisateur est déjà pris.')]
 #[ORM\HasLifecycleCallbacks]
@@ -273,6 +274,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function addRole(string $role): self
+    {
+        if (!in_array($role, $this->roles)) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
+    }
+  
     /**
      * @return Collection<int, NotifMessage>
      */
@@ -290,10 +300,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function removeRole(string $role): self
+    {
+        $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
+        // Réindexer les clés après avoir filtré
+        $this->roles = array_values($this->roles);
+
+        return $this;
+    }
+
     public function removeMessage(NotifMessage $message): static
     {
         $this->messages->removeElement($message);
 
         return $this;
     }
+  
+  
 }

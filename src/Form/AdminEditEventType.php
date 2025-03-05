@@ -8,6 +8,7 @@ use App\Entity\Event;
 use App\Entity\Location;
 use App\Entity\Status;
 use App\Entity\User;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -29,6 +30,10 @@ class AdminEditEventType extends AbstractType
         $builder
             ->add('organizer', EntityType::class, [
                 'class' => User::class,
+                'query_builder' => function (EntityRepository $er) {
+                    return $er->createQueryBuilder('u')
+                        ->orderBy('u.username', 'ASC');
+                },
                 'choice_label' => function (User $user) {
                     return $user->getUsername() . ' (' . $user->getEmail() . ')';
                 },

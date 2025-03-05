@@ -15,19 +15,19 @@
                 {{ form_start(form, {'method': 'GET'}) }}
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
-                        {{ form_label(form.campus) }}
+                        {{ form_label(form.campus, 'Campus') }}
                         {{ form_widget(form.campus, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-5">
-                        {{ form_label(form.organizer) }}
+                        {{ form_label(form.organizer, 'Organisateur') }}
                         {{ form_widget(form.organizer, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-5">
-                        {{ form_label(form.category) }}
+                        {{ form_label(form.category, 'Catégories') }}
                         {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-5">
-                        {{ form_label(form.status) }}
+                        {{ form_label(form.status, 'Statuts') }}
                         {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
                     </div>
                     <div class="col-md-2">
@@ -49,17 +49,24 @@
                     <div class="col">
                         <div class="card shadow-sm h-100">
                             {% if event.img %}
-                                <img src="{{ asset(event.img) }}" class="card-img-top" alt="{{ event.title }}">
+                                <img src="{{ asset(event.img) }}" class="card-img-top" style="height: 200px; object-fit: cover;"  alt="{{ event.title }}">
                             {% else %}
-                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" alt="Image par défaut">
+                                <img src="{{ asset(event.getDefaultImg()) }}" class="card-img-top" style="height: 200px; object-fit: cover;"  alt="Image par défaut">
                             {% endif %}
 
 
                             <div class="card-body">
                                 <h5 class="card-title">{{ event.title }}</h5>
                                 <p class="text-muted">
-                                    <i class="bi bi-calendar-event"></i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                    <p> par :  {{ event.organizer.username }} </p>
                                 </p>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"> Début de l'évènement : </i> {{ event.startsAt|date('d/m/Y H:i') }}
+                                </p>
+                                <p class="text-muted">
+                                    <i class="bi bi-calendar-event"> Date limite inscription : </i> {{ event.openUntil|date('d/m/Y H:i') }}
+                                </p>
+                                <p>{{ event.status.name }}</p>
                                 <p class="card-text">
                                     {{ event.description|length > 50 ? event.description|slice(0, 50) ~ '...' : event.description }}
                                 </p>
@@ -67,11 +74,20 @@
                             <div class="card-footer text-center">
                                 <a href="{{ path('event_details', {'id': event.id}) }}" class="btn btn-primary btn-sm">Voir</a>
                                 {% if currentUser and event.organizer.id == currentUser.id %}
+                                {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' and event.status.name != 'En cours' %}
                                 <a href="{{ path('event_update', {'id': event.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
-                                <form method="post" action="{{ path('event_delete', {'id': event.id}) }}" class="d-inline">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet événement ?');">Supprimer</button>
+                                {% endif %}
+                                <form method="post" action="{{ path('event_archive', {'id': event.id}) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('archive' ~ event.id) }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Archiver cet événement ?');">Archiver</button>
                                 </form>
+                                {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' %}
+                                    {% if event.status.name != 'Passé' %}
+                                    <form action="{{ path('event_cancel', { id: event.id }) }}" method="post" onsubmit="return confirm('Voulez-vous vraiment annuler cet événement ?');">
+                                        <button type="submit" class="btn btn-danger">Annuler l'événement</button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
                                 {% endif %}
                             </div>
                         </div>

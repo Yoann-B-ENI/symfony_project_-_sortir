@@ -7,8 +7,9 @@ use App\Entity\User;
 use App\Form\EventFilterType;
 use App\Form\EventType;
 use App\Message\NotificationType;
+use App\Repository\StatusRepository;
 use App\Service\Censuror;
-
+use App\Service\EventStatusService;
 use App\Service\ImageManagement;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -28,40 +29,32 @@ final class EventController extends AbstractController
 {
 
     #[Route('/event/', name: 'event')]
-    public function index(Request $request,  EntityManagerInterface $entityManager): Response
+    public function index(Request $request,  EntityManagerInterface $entityManager, EventStatusService $eventStatusService ): Response
     {
 
         $form = $this->createForm(EventFilterType::class , null, [
-            'method' => 'GET', // Spécifier explicitement que c'est un formulaire GET
+            'method' => 'GET',
         ]);
         $form->handleRequest($request);
 
+        $campus = $form->get('campus')->getData();
+        $organizer = $form->get('organizer')->getData();
+        $category = $form->get('category')->getData();
+        $status = $form->get('status')->getData();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $campus = $form->get('campus')->getData();
-            $organizer = $form->get('organizer')->getData();
-            $category = $form->get('category')->getData();
-            $status = $form->get('status')->getData();
-
-            $campusId = $campus ? $campus->getId() : null;
-            $organizerId = $organizer ? $organizer->getId() : null;
-            $categoryId = $category ? $category->getId() : null;
-            $statusId = $status ? $status->getId() : null;
-            $userId = $this->getUser() ? $this->getUser()->getId() : null;
+        $campusId = $campus ? $campus->getId() : null;
+        $organizerId = $organizer ? $organizer->getId() : null;
+        $categoryId = $category ? $category->getId() : null;
+        $statusId = $status ? $status->getId() : null;
+        $userId = $this->getUser() ? $this->getUser()->getId() : null;
 
 
-            // Si aucun filtre n'est sélectionné, afficher tous les événements
-//            if (!$campusId && !$organizerId && !$categoryId && !$statusId) {
-//                $eventsList = $entityManager->getRepository(Event::class)->findAll();
-//            } else {
-                // Utiliser la méthode avec les deux filtres
-                $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
-//            }
-        } else {
-            // Par défaut, afficher tous les événements
-            $eventsList = $entityManager->getRepository(Event::class)->findAll();
+        $eventsList = $entityManager->getRepository(Event::class)->findByFilters($campusId, $organizerId, $categoryId, $statusId, $userId);
+
+
+        foreach ($eventsList as $event) {
+            $eventStatusService->checkAndUpdates($event);
         }
-
         return $this->render('event/index.html.twig', [
             'eventsList' => $eventsList,
             'form' => $form,
@@ -86,6 +79,7 @@ final class EventController extends AbstractController
             $event->setTitle($censuror->purify($event->getTitle()));
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
+
 
             $entityManager->persist($event);
             $entityManager->flush();
@@ -120,6 +114,11 @@ final class EventController extends AbstractController
         #[Autowire('%event_photo_def_filename%')] string $filename,
         ImageManagement $imageManagement,
     ): Response {
+
+        if ($event->getStatus()->getName() === 'Annulé') {
+            $this->addFlash('error', 'Cet événement a été annulé et ne peut plus être modifié.');
+            return $this->redirectToRoute('event'); // Redirection vers la liste
+        }
 
         if ($this->getUser() !== $event->getOrganizer()) {
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier cet événement.');
@@ -188,15 +187,46 @@ final class EventController extends AbstractController
         return $this->redirectToRoute('event');
     }
 
-    #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
-    public function show(Event $event): Response
+    #[Route('/event/archive{id}', name: 'event_archive')]
+    public function ArchiveEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
     {
+        // Récupérer le statut "Archivé"
+        $statusArchive = $statusRepository->findOneBy(['name' => 'Archivé']);
+
+        // Vérifier si le statut existe
+        if (!$statusArchive) {
+            $this->addFlash('error', 'Le statut Archivé n\'existe pas.');
+            return $this->redirectToRoute('event'); // Rediriger vers la liste des événements
+        }
+
+        // Modifier le statut de l'événement
+        $event->setStatus($statusArchive);
+        $entityManager->persist($event);
+        $entityManager->flush();
+
+        // Message de confirmation
+        $this->addFlash('success', 'L\'événement a été archivé.');
+
+        return $this->redirectToRoute('event'); // Rediriger après l'archivage
+    }
+
+    #[Route('/event/{id}', name: 'event_details', requirements: ['id' => '\d+'])]
+    public function show(Event $event, EventStatusService $eventStatusService): Response
+    {
+        $statusUpdated = $eventStatusService->checkAndUpdates($event);
+
+        // Optionnel : informer l'utilisateur si le statut a été mis à jour
+        if ($statusUpdated) {
+            $this->addFlash('info', 'Le statut de l\'événement a été mis à jour automatiquement.');
+        }
+
         // database call in parameter name
         return $this->render('event/details.html.twig', [
             'event' => $event,
             'currentUser' => $this->getUser(),
         ]);
     }
+
 
     /** Gestion des participants aux évènements et envoie des mails
      * @param int $eventId
@@ -206,6 +236,30 @@ final class EventController extends AbstractController
      * @return RedirectResponse
      * @throws \DateMalformedStringException
      */
+
+    #[Route('/event/cancel/{id}', name: 'event_cancel')]
+    public function cancelEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        // Récupérer le statut "Annulé"
+        $statusAnnule = $statusRepository->findOneBy(['name' => 'Annulé']);
+
+        // Vérifier si le statut existe
+        if (!$statusAnnule) {
+            $this->addFlash('error', 'Le statut Annulé n\'existe pas.');
+            return $this->redirectToRoute('event'); // Rediriger vers la liste des événements
+        }
+
+        // Modifier le statut de l'événement
+        $event->setStatus($statusAnnule);
+        $entityManager->persist($event);
+        $entityManager->flush();
+
+        // Message de confirmation
+        $this->addFlash('success', 'L\'événement a été annulé.');
+
+        return $this->redirectToRoute('event'); // Rediriger après l'annulation
+    }
+
     #[Route('event/addParticipant/{eventId}/{userId}', name: 'event_add_participant',
         requirements: ['eventId' => '\d+', 'userId' => '\d+'])]
     public function addParticipant(

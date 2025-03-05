@@ -39,72 +39,76 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
          * START OF USER LIST
          */
         $temp = new User();
-        $temp->setEmail('jean.dupont@example.fr')
+        $temp->setEmail('jean.dupont@campus-eni.fr')
             ->setFirstName('Jean')
             ->setLastName('Dupont')
             ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
             ->setTelephone('0601020304')
             ->setUsername('jean.dupont')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
-            ->setRoles(['ROLE_USER']);
+            ->setRoles(['ROLE_USER'])
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
 
         $temp = new User();
-        $temp->setEmail('marie.lemoine@example.fr')
+        $temp->setEmail('marie.lemoine@campus-eni.fr')
             ->setFirstName('Marie')
             ->setLastName('Lemoine')
             ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
             ->setTelephone('0612345678')
             ->setUsername('Sleepy_Panda')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
-            ->setRoles(['ROLE_USER']);
+            ->setRoles(['ROLE_USER'])
+            ->setIsVerified(true)
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
 
         $temp = new User();
-        $temp->setEmail('lucas.martin@example.fr')
+        $temp->setEmail('lucas.martin@campus-eni.fr')
             ->setFirstName('Lucas')
             ->setLastName('Martin')
             ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
             ->setTelephone('0623456789')
             ->setUsername('Lucas 44')
             ->setCampus($this->getReference('campus_Niort', Campus::class))
-            ->setRoles(['ROLE_USER']);
+            ->setRoles(['ROLE_USER'])
+            ->setIsVerified(true)
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
 
         $temp = new User();
-        $temp->setEmail('sophie.durand@example.fr')
+        $temp->setEmail('sophie.durand@campus-eni.fr')
             ->setFirstName('Sophie')
             ->setLastName('Durand')
             ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
             ->setTelephone('0634567890')
             ->setUsername('Sophie D.')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
-            ->setRoles(['ROLE_USER']);
+            ->setRoles(['ROLE_USER'])
+            ->setIsVerified(true)
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
 
         $temp = new User();
-        $temp->setEmail('nicolas.perez@example.fr')
+        $temp->setEmail('nicolas.perez@campus-eni.fr')
             ->setFirstName('Nicolas')
             ->setLastName('Perez')
             ->setPassword($this->pwdHasher->hashPassword($temp, 'adminadmin'))
             ->setTelephone('0645678901')
             ->setUsername('nico super admin')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
-            ->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+            ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
+            ->setIsVerified(true)
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
 
         $temp = new User();
-        $temp->setEmail('amelie.caillet@example.fr')
+        $temp->setEmail('amelie.caillet@campus-eni.fr')
             ->setFirstName('Amélie')
             ->setLastName('Caillet')
             ->setPassword($this->pwdHasher->hashPassword($temp, 'adminadmin'))
@@ -113,6 +117,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
             ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
             ->addMessage($this->getReference("notif_test_amélie", NotifMessage::class))
+            ->setIsVerified(true)
         ;
         $manager->persist($temp);
         $this->addReference('user_' . $temp->getUsername(), $temp);
