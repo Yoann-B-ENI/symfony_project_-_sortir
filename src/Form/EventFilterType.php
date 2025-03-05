@@ -49,8 +49,14 @@ class EventFilterType extends AbstractType
                 'class' => Category::class,
                 'choice_label' => 'name',
                 'choice_value' => 'id',
+                'multiple' => true,
+                'expanded' => true,
                 'placeholder'=> 'Toutes les categories',
                 'required' => false,
+                'label' => 'Catégories',
+                'attr' => [
+        'class' => 'category-checkboxes'
+    ]
             ])
             ->add('status', EntityType::class, [
                 'class' => Status::class,
