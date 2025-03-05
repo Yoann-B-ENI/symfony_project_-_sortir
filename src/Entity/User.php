@@ -319,29 +319,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
 
-    #[ORM\PrePersist]
-    public function onCreation(NotifMessageManager $notifManager){
-        $notifManager->createMessage("L'utilisateur " . $this->getUserIdentifier() . " a été créé.",
-            false, ['ROLE_ADMIN'], null);
-        $notifManager->createMessage("Votre compte " . $this->getUserIdentifier() . " a été créé.",
-            false, ['ROLE_USER'], $this);
-    }
 
-    #[ORM\PreUpdate]
-    public function onUpdate(NotifMessageManager $notifManager, PreUpdateEventArgs $eventArgs){
-        $notifManager->createMessage("L'utilisateur " . $this->getUserIdentifier() . " a été modifié.",
-            false, ['ROLE_ADMIN'], null);
-        $notifManager->createMessage("Votre compte " . $this->getUserIdentifier() . " a été modifié.",
-            false, ['ROLE_USER'], $this);
-    }
-
-    #[ORM\PreRemove]
-    public function onRemove(NotifMessageManager $notifManager){
-        $notifManager->createMessage("L'utilisateur " . $this->getUserIdentifier() . " a été supprimé.",
-            false, ['ROLE_ADMIN'], null);
-        $notifManager->createMessage("Votre compte " . $this->getUserIdentifier() . " a été supprimé.",
-            false, ['ROLE_USER'], $this);
-    }
 
 
 }

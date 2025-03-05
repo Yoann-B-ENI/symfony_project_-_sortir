@@ -14,7 +14,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ORM\EntityListeners([NotifEventListener::class])]
 class Event
 {
     #[ORM\Id]
@@ -284,45 +283,6 @@ class Event
     }
 
 
-//    #[ORM\PrePersist]
-//    public function onCreation(NotifMessageManager $notifManager){
-//
-//
-//    }
-
-    #[ORM\PreUpdate]
-    public function onUpdate(PreUpdateEventArgs $eventArgs, NotifMessageManager $notifManager){
-        $body = "";
-        if ($eventArgs->hasChangedField('title')){$body = $body . "titre, ";}
-        if ($eventArgs->hasChangedField('startsAt')){$body = $body . "date de début, ";}
-        if ($eventArgs->hasChangedField('endsAt')){$body = $body . "date de fin, ";}
-        if ($eventArgs->hasChangedField('openUntil')){$body = $body . "date max d'inscription, ";}
-        if ($eventArgs->hasChangedField('nbMaxParticipants')){$body = $body . "nombre max participants, ";}
-        if ($eventArgs->hasChangedField('description')){$body = $body . "description, ";}
-        if ($eventArgs->hasChangedField('img')){$body = $body . "image, ";}
-        //if ($eventArgs->hasChangedField('status')){$body = $body . "statut, ";}
-
-        $notifManager->createMessage("L'évènement " . $this->getTitle() . " a été modifié. " . $body,
-            false, ['ROLE_ADMIN'], null);
-        $notifManager->createMessage("L'évènement " . $this->getTitle() . " que vous organisez a été modifié. " . $body,
-            false, ['ROLE_USER'], $this->getOrganizer());
-        foreach ($this->getParticipants() as $p) {
-            $notifManager->createMessage("L'évènement " . $this->getTitle() . " auquel vous participez a été modifié. " . $body,
-                true, ['ROLE_USER'], $p);
-        }
-    }
-
-    #[ORM\PreRemove]
-    public function onRemove(NotifMessageManager $notifManager){
-        $notifManager->createMessage("L'évènement " . $this->getTitle() . " a été supprimé.",
-            false, ['ROLE_ADMIN'], null);
-        $notifManager->createMessage("L'évènement " . $this->getTitle() . " que vous organisiez a été supprimé.",
-            false, ['ROLE_USER'], $this->getOrganizer());
-        foreach ($this->getParticipants() as $p) {
-            $notifManager->createMessage("L'évènement " . $this->getTitle() . " auquel vous participiez a été supprimé.",
-                true, ['ROLE_USER'], $p);
-        }
-    }
 
 
 }
