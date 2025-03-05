@@ -65,7 +65,7 @@ class EventRepository extends ServiceEntityRepository
 //        return $qb->getQuery()->getResult();
 //    }
 
-    public function findByFilters(?int $campusId = null, ?int $organizerId = null, ?int $categoryId = null, ?int $statusId =null, ?int $userId= null): array
+    public function findByFilters(?int $campusId = null, ?int $organizerId = null, ?array $categoryIds = null, ?int $statusId =null, ?int $userId= null): array
     {
         $qb = $this->createQueryBuilder('e');
 
@@ -79,11 +79,11 @@ class EventRepository extends ServiceEntityRepository
                 ->setParameter('organizerId', $organizerId);
         }
 
-        if (!is_null($categoryId)) {
+        if (!is_null($categoryIds)) {
             // Si c'est une relation ManyToMany
             $qb->join('e.categories', 'c')
-                ->andWhere('c.id = :categoryId')
-                ->setParameter('categoryId', $categoryId);
+                ->andWhere('c.id IN (:categoryIds)')
+                ->setParameter('categoryIds', $categoryIds);
         }
 
         if (!is_null($statusId)) {
