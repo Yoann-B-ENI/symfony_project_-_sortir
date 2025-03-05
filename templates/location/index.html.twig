@@ -3,13 +3,18 @@
 {% block title %}Lieux d'évènements{% endblock %}
 
 {% block body %}
+    {# Flash messages for geocoding warnings #}
+    {% for message in app.flashes('warning') %}
+        <div class="alert alert-warning">
+            {{ message }}
+        </div>
+    {% endfor %}
 
     {% if locations is empty %}
         <div class="alert alert-info text-center">
             <p>Aucun lieu n'existe.</p>
         </div>
     {% else %}
-
         <div class="row row-cols-1 row-cols-md-3 g-4">
             <strong>Liste des lieux : </strong>
             <table style="border: 2px solid black">
@@ -90,30 +95,6 @@
             </div>
 
             <div class="mb-3">
-                {{ form_label(locForm.latitude, 'Latitude *') }}
-                {{ form_widget(locForm.latitude, { 'attr': {'class': 'form-control', 'placeholder': '45.1234'} }) }}
-                {% if locForm.latitude.vars.errors|length > 0 %}
-                    <div class="text-danger">
-                        {% for error in locForm.latitude.vars.errors %}
-                            <p>{{ error.message }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                {{ form_label(locForm.longitude, 'Longitude *') }}
-                {{ form_widget(locForm.longitude, { 'attr': {'class': 'form-control', 'placeholder': '1.1234'} }) }}
-                {% if locForm.longitude.vars.errors|length > 0 %}
-                    <div class="text-danger">
-                        {% for error in locForm.longitude.vars.errors %}
-                            <p>{{ error.message }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
                 {{ form_label(locForm.extraInfo, 'Détails du lieu') }}
                 {{ form_widget(locForm.extraInfo, { 'attr': {'class': 'form-control', 'placeholder': 'Informations supplémentaires sur le lieu (numéro de salle, ...)'} }) }}
             </div>
@@ -122,5 +103,4 @@
             {{ form_end(locForm) }}
         </div>
     </div>
-
 {% endblock %}

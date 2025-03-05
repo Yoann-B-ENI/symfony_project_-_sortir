@@ -91,7 +91,7 @@
                                 {% if event.status.name != 'Annulé' and event.status.name != 'Archivé' %}
                                     {% if event.status.name != 'Passé' %}
                                     <form action="{{ path('event_cancel', { id: event.id }) }}" method="post" onsubmit="return confirm('Voulez-vous vraiment annuler cet événement ?');">
-                                        <button type="submit" class="btn btn-danger">Annuler l'événement</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">Annuler l'événement</button>
                                     </form>
                                     {% endif %}
                                 {% endif %}
