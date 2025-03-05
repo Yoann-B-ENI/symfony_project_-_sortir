@@ -28,6 +28,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use App\Message\EventNotification;
 final class EventController extends AbstractController
 {
+    public function __construct(private NotifMessageManager $notifManager)
+    {    }
+
 
     #[Route('/event/', name: 'event')]
     public function index(Request $request,  EntityManagerInterface $entityManager, EventStatusService $eventStatusService ): Response
@@ -207,6 +210,17 @@ final class EventController extends AbstractController
         $entityManager->persist($event);
         $entityManager->flush();
 
+        // move to the event listener later
+        $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " a été archivé. ",
+            false, ['ROLE_ADMIN'], null);
+        $this->notifManager->createMessage("Votre évènement " . $event->getTitle() . " a été archivé. ",
+            false, ['ROLE_USER'], $event->getOrganizer());
+        foreach ($event->getParticipants() as $p) {
+            $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " auquel vous avez participé a été archivé. ",
+                false, ['ROLE_USER'], $p);
+        }
+
+
         // Message de confirmation
         $this->addFlash('success', 'L\'événement a été archivé.');
 
@@ -266,6 +280,16 @@ final class EventController extends AbstractController
         $entityManager->persist($event);
         $entityManager->flush();
 
+        // move to the event listener later
+        $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " a été annulé. ",
+            false, ['ROLE_ADMIN'], null);
+        $this->notifManager->createMessage("Votre évènement " . $event->getTitle() . " a été annulé. ",
+            false, ['ROLE_USER'], $event->getOrganizer());
+        foreach ($event->getParticipants() as $p) {
+            $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " auquel vous participiez a été annulé. ",
+                false, ['ROLE_USER'], $p);
+        }
+
         // Message de confirmation
         $this->addFlash('success', 'L\'événement a été annulé.');
 
@@ -317,6 +341,12 @@ final class EventController extends AbstractController
 
         $event->addParticipant($user);
         $em->flush();
+
+        // move to the event listener later
+        $this->notifManager->createMessage($user->getUsername() . "s'est inscrit à votre évènement " . $event->getTitle() . ". ",
+            false, ['ROLE_USER'], $event->getOrganizer());
+        $this->notifManager->createMessage("Vous êtes inscrit à l'évènement " . $event->getTitle() . ". ",
+            false, ['ROLE_USER'], $user);
 
         $messageBus->dispatch(new EventNotification(
             $eventId,
@@ -378,6 +408,12 @@ final class EventController extends AbstractController
         if ($event->getOrganizer() === $user){dump('Warn : event organizer removed themselves');}
         $event->removeParticipant($user);
         $em->flush();
+
+        // move to the event listener later
+        $this->notifManager->createMessage($user->getUsername() . "s'est désinscrit de votre évènement " . $event->getTitle() . ". ",
+            false, ['ROLE_USER'], $event->getOrganizer());
+        $this->notifManager->createMessage("Vous êtes retiré de l'évènement " . $event->getTitle() . ". ",
+            false, ['ROLE_USER'], $user);
 
         return $this->redirectToRoute('event_details', ['id' => $eventId]);
     }
