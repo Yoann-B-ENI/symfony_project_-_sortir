@@ -157,14 +157,13 @@ final class EventController extends AbstractController
         ]);
     }
 
-    //Ajout de la partie mail
+
     #[Route('/event/{id}/delete', name: 'event_delete')]
     public function delete(Request $request,
                            Event $event,
                            EntityManagerInterface $entityManager,
                            ImageManagement $imageManagement,
                            #[Autowire('%event_photo_dir%')] string $photoDir,
-                           MessageBusInterface $messageBus,
     ): Response
     {
         if ($this->getUser() !== $event->getOrganizer()) {
@@ -172,13 +171,6 @@ final class EventController extends AbstractController
         }
 
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->request->get('_token'))) {
-
-            $messageBus->dispatch(new EventNotification(
-                $event->getId(),
-                null,
-                NotificationType::CANCELLATION
-            ));
-
             $imageManagement->deleteImage($photoDir, $event->getId());
             $entityManager->remove($event);
             $entityManager->flush();
@@ -238,7 +230,12 @@ final class EventController extends AbstractController
      */
 
     #[Route('/event/cancel/{id}', name: 'event_cancel')]
-    public function cancelEvent(Event $event, StatusRepository $statusRepository, EntityManagerInterface $entityManager): RedirectResponse
+    public function cancelEvent(
+        Event $event,
+        StatusRepository $statusRepository,
+        EntityManagerInterface $entityManager,
+        MessageBusInterface $messageBus
+    ): RedirectResponse
     {
         // Récupérer le statut "Annulé"
         $statusAnnule = $statusRepository->findOneBy(['name' => 'Annulé']);
@@ -251,8 +248,16 @@ final class EventController extends AbstractController
 
         // Modifier le statut de l'événement
         $event->setStatus($statusAnnule);
+
         $entityManager->persist($event);
         $entityManager->flush();
+
+        //Envoie du mail d'annulation aux participants
+        $messageBus->dispatch(new EventNotification(
+            $event->getId(),
+            null,
+            NotificationType::CANCELLATION
+        ));
 
         // Message de confirmation
         $this->addFlash('success', 'L\'événement a été annulé.');
@@ -306,13 +311,14 @@ final class EventController extends AbstractController
         $event->addParticipant($user);
         $em->flush();
 
+        // mail d'inscription à l'event
         $messageBus->dispatch(new EventNotification(
             $eventId,
             $user->getId(),
             NotificationType::REGISTRATION
         ));
 
-        //Rappel 48h avant l'event
+        //Rappel mail 48h avant l'event
         $startsAt = $event->getStartsAt();
         $now = new \DateTimeImmutable();
 
