@@ -566,6 +566,34 @@ final class AdminController extends AbstractController
 
     }
 
+    #[Route('/admin/edit/location/{id}', name: 'admin_edit_location', methods: ['GET', 'POST'])]
+    public function editLocation(int $id, LocationRepository $locationRepository, EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $location = $locationRepository->find($id);
+
+        if (!$location) {
+            throw $this->createNotFoundException('Cette adresse n\'existe pas.');
+        }
+
+        // Création du formulaire
+        $locForm = $this->createForm(LocationType::class, $location);
+        $locForm->handleRequest($request);
+
+        // Traitement du formulaire
+        if ($locForm->isSubmitted() && $locForm->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('warning', 'Adresse modifiée avec succès.');
+
+            return $this->redirectToRoute('admin');
+        }
+
+        // Affichage du formulaire dans la vue
+        return $this->render('location/update.html.twig', [
+            'locForm' => $locForm,
+            'location' => $location,
+            'title' => 'Modification d\'une adresse',
+        ]);
+    }
 
 
 }

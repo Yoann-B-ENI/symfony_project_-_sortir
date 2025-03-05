@@ -53,7 +53,7 @@ class Location
         max: 10,
         notInRangeMessage: 'Longitude doit être entre {{ min }} et {{ max }}° Est',
     )]
-    private ?string $longitude = null;
+    private ?float $longitude = null;
 
     // For reference, approx. bounding box of metropolitan france
     // 41.395564261621374, 9.622656317933236
@@ -66,7 +66,7 @@ class Location
         max: 52,
         notInRangeMessage: 'Latitude doit être entre {{ min }} et {{ max }}° Nord',
     )]
-    private ?string $latitude = null;
+    private ?float $latitude = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $extraInfo = null;
@@ -136,24 +136,24 @@ class Location
         return $this;
     }
 
-    public function getLongitude(): ?string
+    public function getLongitude(): ?float
     {
         return $this->longitude;
     }
 
-    public function setLongitude(string $longitude): static
+    public function setLongitude(float $longitude): static
     {
         $this->longitude = $longitude;
 
         return $this;
     }
 
-    public function getLatitude(): ?string
+    public function getLatitude(): ?float
     {
         return $this->latitude;
     }
 
-    public function setLatitude(string $latitude): static
+    public function setLatitude(float $latitude): static
     {
         $this->latitude = $latitude;
 
