@@ -217,15 +217,24 @@ final class EventController extends AbstractController
     {
         $statusUpdated = $eventStatusService->checkAndUpdates($event);
 
-        // Optionnel : informer l'utilisateur si le statut a été mis à jour
+
         if ($statusUpdated) {
             $this->addFlash('info', 'Le statut de l\'événement a été mis à jour automatiquement.');
         }
 
-        // database call in parameter name
+        $location = $event->getLocation();
+        $hasValidCoordinates = $location &&
+            $location->getLatitude() !== null &&
+            $location->getLongitude() !== null;
+
+
+
         return $this->render('event/details.html.twig', [
             'event' => $event,
             'currentUser' => $this->getUser(),
+            'hasValidCoordinates' => $hasValidCoordinates,
+            'latitude' => $hasValidCoordinates ? floatval($location->getLatitude()) : null,
+            'longitude' => $hasValidCoordinates ? floatval($location->getLongitude()) : null
         ]);
     }
 
