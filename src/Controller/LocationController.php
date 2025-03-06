@@ -97,7 +97,8 @@ final class LocationController extends AbstractController
     }
 
     #[Route('location/delete/{id}', name: 'app_location_delete', requirements: ['id' => '\d+'])]
-    public function delete(Location $loc, EntityManagerInterface $em): RedirectResponse
+    public function delete(Location $loc, // database call
+                           EntityManagerInterface $em): RedirectResponse
     {
         $em->remove($loc);
         $em->flush();

@@ -42,7 +42,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $temp->setEmail('jean.dupont@campus-eni.fr')
             ->setFirstName('Jean')
             ->setLastName('Dupont')
-            ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
             ->setTelephone('0601020304')
             ->setUsername('jean.dupont')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
@@ -55,7 +55,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $temp->setEmail('marie.lemoine@campus-eni.fr')
             ->setFirstName('Marie')
             ->setLastName('Lemoine')
-            ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
             ->setTelephone('0612345678')
             ->setUsername('Sleepy_Panda')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
@@ -69,7 +69,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $temp->setEmail('lucas.martin@campus-eni.fr')
             ->setFirstName('Lucas')
             ->setLastName('Martin')
-            ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
             ->setTelephone('0623456789')
             ->setUsername('Lucas 44')
             ->setCampus($this->getReference('campus_Niort', Campus::class))
@@ -83,7 +83,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $temp->setEmail('sophie.durand@campus-eni.fr')
             ->setFirstName('Sophie')
             ->setLastName('Durand')
-            ->setPassword($this->pwdHasher->hashPassword($temp, '1234'))
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
             ->setTelephone('0634567890')
             ->setUsername('Sophie D.')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
@@ -97,7 +97,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $temp->setEmail('nicolas.perez@campus-eni.fr')
             ->setFirstName('Nicolas')
             ->setLastName('Perez')
-            ->setPassword($this->pwdHasher->hashPassword($temp, 'adminadmin'))
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
             ->setTelephone('0645678901')
             ->setUsername('nico super admin')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
@@ -111,12 +111,71 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $temp->setEmail('amelie.caillet@campus-eni.fr')
             ->setFirstName('Amélie')
             ->setLastName('Caillet')
-            ->setPassword($this->pwdHasher->hashPassword($temp, 'adminadmin'))
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
             ->setTelephone('0645678901')
             ->setUsername('Amélie C')
             ->setCampus($this->getReference('campus_Nantes', Campus::class))
             ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
             ->addMessage($this->getReference("notif_test_amélie", NotifMessage::class))
+            ->setIsVerified(true)
+        ;
+        $manager->persist($temp);
+        $this->addReference('user_' . $temp->getUsername(), $temp);
+
+
+        $temp = new User();
+        $temp->setEmail('yoann.battu@campus-eni.fr')
+            ->setFirstName('Yoann')
+            ->setLastName('Battu')
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
+            ->setTelephone('0645678901')
+            ->setUsername('Dark Yoyo')
+            ->setCampus($this->getReference('campus_Nantes', Campus::class))
+            ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
+            ->setIsVerified(true)
+        ;
+        $manager->persist($temp);
+        $this->addReference('user_' . $temp->getUsername(), $temp);
+
+
+        $temp = new User();
+        $temp->setEmail('julien.francois@campus-eni.fr')
+            ->setFirstName('Julien')
+            ->setLastName('François')
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
+            ->setTelephone('0645678901')
+            ->setUsername('JuL')
+            ->setCampus($this->getReference('campus_Nantes', Campus::class))
+            ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
+            ->setIsVerified(true)
+        ;
+        $manager->persist($temp);
+        $this->addReference('user_' . $temp->getUsername(), $temp);
+
+
+        $temp = new User();
+        $temp->setEmail('julian.denoue@campus-eni.fr')
+            ->setFirstName('Julian')
+            ->setLastName('Denoue')
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
+            ->setTelephone('0645678901')
+            ->setUsername('Juju Wat')
+            ->setCampus($this->getReference('campus_Nantes', Campus::class))
+            ->setRoles(['ROLE_ADMIN', 'ROLE_USER'])
+            ->setIsVerified(true)
+        ;
+        $manager->persist($temp);
+        $this->addReference('user_' . $temp->getUsername(), $temp);
+
+        $temp = new User();
+        $temp->setEmail('francois.gallard@campus-eni.fr')
+            ->setFirstName('François')
+            ->setLastName('Gallard')
+            ->setPassword($this->pwdHasher->hashPassword($temp, 'Azerty1234!!'))
+            ->setTelephone('0645678901')
+            ->setUsername('Dev Fanch')
+            ->setCampus($this->getReference('campus_Nantes', Campus::class))
+            ->setRoles(['ROLE_USER'])
             ->setIsVerified(true)
         ;
         $manager->persist($temp);

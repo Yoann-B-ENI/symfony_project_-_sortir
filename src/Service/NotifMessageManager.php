@@ -122,9 +122,19 @@ class NotifMessageManager
             ->setIsFlagged($isFlagged)
             ->setRoles($rolesAsString)
         ;
-        if ($targetUser){$targetUser->addMessage($temp);}
-        $this->em->persist($temp);
-        $this->em->flush();
+
+        try {
+            $this->em->persist($temp);
+            $this->em->flush();
+            if ($targetUser) {
+                $targetUser->addMessage($temp);
+                $this->em->flush();
+            }
+        } catch (\Exception $e) {
+            // Log or dd the exception to see what's going wrong
+            dd($e->getMessage());
+        }
+
 
         return $temp;
     }

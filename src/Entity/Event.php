@@ -2,14 +2,18 @@
 
 namespace App\Entity;
 
+use App\EventListener\NotifEventListener;
 use App\Repository\EventRepository;
+use App\Service\NotifMessageManager;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Event
 {
     #[ORM\Id]
@@ -279,4 +283,8 @@ class Event
 
         return $this;
     }
+
+
+
+
 }

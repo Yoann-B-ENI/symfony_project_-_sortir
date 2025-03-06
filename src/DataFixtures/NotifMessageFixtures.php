@@ -10,16 +10,9 @@ class NotifMessageFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $temp = new NotifMessage();
-        $temp->setMessage("Ceci est un message de test pour tout le monde")
-            ->setIsFlagged(true)
-            ->setRoles("['ROLE_USER']")
-            ->setCreatedAt(new \DateTimeImmutable())
-            ;
-        $manager->persist($temp);
 
         $temp = new NotifMessage();
-        $temp->setMessage("Ceci est un autre message de test pour tout le monde mais déja lu")
+        $temp->setMessage("Message pour tout le monde!")
             ->setIsFlagged(false)
             ->setRoles("['ROLE_USER']")
             ->setCreatedAt(new \DateTimeImmutable())
@@ -27,7 +20,7 @@ class NotifMessageFixtures extends Fixture
         $manager->persist($temp);
 
         $temp = new NotifMessage();
-        $temp->setMessage("Ceci est un message de test pour tout les admins")
+        $temp->setMessage("Message imoprtant pour tous les admins")
             ->setIsFlagged(true)
             ->setRoles("['ROLE_ADMIN']")
             ->setCreatedAt(new \DateTimeImmutable())
@@ -35,7 +28,7 @@ class NotifMessageFixtures extends Fixture
         $manager->persist($temp);
 
         $temp = new NotifMessage();
-        $temp->setMessage("Ceci est un message de test pour Améliiiiiiiie")
+        $temp->setMessage("Message d'administratif perso juste pour Amélie")
             ->setIsFlagged(true)
             ->setRoles("['ROLE_ADMIN']")
             ->setCreatedAt(new \DateTimeImmutable())

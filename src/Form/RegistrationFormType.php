@@ -58,11 +58,10 @@ class RegistrationFormType extends AbstractType
                         new NotBlank([
                             'message' => 'Merci d\'entrer un mot de passe',
                         ]),
-   //TODO: décommenter la contrainte du password à la fin du projet
-   //                     new PasswordStrength([
-   //                         'message' => 'Please enter a password more strong',
-   //                         'minScore' => PasswordStrength::STRENGTH_WEAK,
-   //                     ])
+                        new PasswordStrength([
+                            'message' => 'Merci d\'entrer un mot de passe plus sécurisé',
+                            'minScore' => PasswordStrength::STRENGTH_WEAK,
+                        ])
                     ],
                 ],
                 'second_options' => ['label' => 'Repeat Password *'],

@@ -171,4 +171,10 @@ class Location
 
         return $this;
     }
+
+
+    //TODO on delete, warn all participants of events that have that location
+    //TODO on update, warn all participants of events that have that location
+
+
 }
