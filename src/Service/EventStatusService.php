@@ -12,25 +12,31 @@ class EventStatusService{
     private $statusRepository;
     private $entityManager;
 
+    private $statusEnCours;
+    private $statusPasse;
+    private $statusAVenir;
+    private $statusArchive;
+
+
+
     public function __construct(StatusRepository $statusRepository,
                                 EntityManagerInterface $entityManager){
         $this->statusRepository = $statusRepository;
         $this->entityManager = $entityManager;
+
+        $this->statusEnCours = $statusRepository->findOneBy(['name' => 'En cours']);
+        $this->statusPasse = $statusRepository->findOneBy(['name' => 'Passé']);
+        $this->statusAVenir = $statusRepository->findOneBy(['name' => 'Prévu']);
+        $this->statusArchive = $statusRepository->findOneBy(['name' => 'Archivé']);
     }
 
     public function checkAndUpdates(Event $event): bool
     {
-
         $now = new \DateTime();
         $oneMonthAgo = (clone $now)->modify('-1 month');
         $changed = false;
 
-        $statusEnCours = $this->statusRepository->findOneBy(['name' => 'En cours']);
-        $statusPasse = $this->statusRepository->findOneBy(['name' => 'Passé']);
-        $statusAVenir = $this->statusRepository->findOneBy(['name' => 'Prévu']);
-        $statusArchive = $this->statusRepository->findOneBy(['name' => 'Archivé']);
-
-        if (!$statusEnCours || !$statusPasse || !$statusAVenir || !$statusArchive) {
+        if (!$this->statusEnCours || !$this->statusPasse || !$this->statusAVenir || !$this->statusArchive) {
             return false;
         }
 
@@ -48,22 +54,22 @@ class EventStatusService{
         // Vérifier si l'événement devrait être en cours
         if ($event->getStartsAt() <= $now && $event->getEndsAt() > $now
             && $event->getStatus()->getName() !== 'En cours') {
-            $event->setStatus($statusEnCours);
+            $event->setStatus($this->statusEnCours);
             $changed = true;
         }
         // Vérifier si l'événement devrait être archivé
         elseif ($event->getEndsAt() < $now && $event->getEndsAt() > $oneMonthAgo&& $event->getStatus()->getName() !== 'Passé') {
-            $event->setStatus($statusPasse);
+            $event->setStatus($this->statusPasse);
             $changed = true;
         }
 
         elseif ($event->getEndsAt() < $oneMonthAgo && $event->getStatus()->getName() !== 'Archivé') {
-            $event->setStatus($statusArchive);
+            $event->setStatus($this->statusArchive);
             $changed = true;
         }
 
         elseif($event->getStartsAt() > $now && $event->getStatus()->getName() !== 'Prévu') {
-            $event->setStatus($statusAVenir);
+            $event->setStatus($this->statusAVenir);
             $changed = true;
         }
 
