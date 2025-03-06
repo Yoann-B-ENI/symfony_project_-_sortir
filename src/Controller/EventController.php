@@ -85,6 +85,7 @@ final class EventController extends AbstractController
             $event->setTitle($censuror->purify($event->getTitle()));
             $event->setOrganizer($this->getUser());
             $event->setCampus($this->getUser()->getCampus());
+            $event->addParticipant($this->getUser());
 
             $entityManager->persist($event);
             $entityManager->flush();
