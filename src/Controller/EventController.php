@@ -207,7 +207,7 @@ final class EventController extends AbstractController
         $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " a été archivé. ",
             false, ['ROLE_ADMIN'], null);
         $this->notifManager->createMessage("Votre évènement " . $event->getTitle() . " a été archivé. ",
-            false, ['ROLE_USER'], $event->getOrganizer());
+            true, ['ROLE_USER'], $event->getOrganizer());
         foreach ($event->getParticipants() as $p) {
             $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " auquel vous avez participé a été archivé. ",
                 false, ['ROLE_USER'], $p);
@@ -283,7 +283,7 @@ final class EventController extends AbstractController
         $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " a été annulé. ",
             false, ['ROLE_ADMIN'], null);
         $this->notifManager->createMessage("Votre évènement " . $event->getTitle() . " a été annulé. ",
-            false, ['ROLE_USER'], $event->getOrganizer());
+            true, ['ROLE_USER'], $event->getOrganizer());
         foreach ($event->getParticipants() as $p) {
             $this->notifManager->createMessage("L'évènement " . $event->getTitle() . " auquel vous participiez a été annulé. ",
                 false, ['ROLE_USER'], $p);
@@ -419,7 +419,7 @@ final class EventController extends AbstractController
         $this->notifManager->createMessage($user->getUsername() . "s'est désinscrit de votre évènement " . $event->getTitle() . ". ",
             false, ['ROLE_USER'], $event->getOrganizer());
         $this->notifManager->createMessage("Vous êtes retiré de l'évènement " . $event->getTitle() . ". ",
-            false, ['ROLE_USER'], $user);
+            true, ['ROLE_USER'], $user);
 
         return $this->redirectToRoute('event_details', ['id' => $eventId]);
     }
