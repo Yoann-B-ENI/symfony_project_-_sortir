@@ -527,8 +527,13 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/admin/import-users/upload', name: 'admin_import_users_upload', methods: ['POST'])]
-    public function importUsers(Request $request, CampusRepository $campusRepository, EntityManagerInterface $entityManager,
-                                UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): Response
+    public function importUsers(
+        Request $request,
+        CampusRepository $campusRepository,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher,
+        ValidatorInterface $validator
+    ): Response
     {
         $file = $request->files->get('csv_file');
 
