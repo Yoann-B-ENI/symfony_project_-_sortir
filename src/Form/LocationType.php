@@ -42,16 +42,16 @@ class LocationType extends AbstractType
                 'required' => true,
                 'attr' => ['class'=> 'form-control', 'placeholder' => 'Ville'],
             ])
-            ->add('latitude', NumberType::class, [
-                'label' => 'Latitude *',
-                'required' => true,
-                'attr' => ['class'=> 'form-control', 'placeholder' => '45.1234'],
-            ])
-            ->add('longitude', NumberType::class, [
-                'label' => 'Longitude *',
-                'required' => true,
-                'attr' => ['class'=> 'form-control', 'placeholder' => '1.1234'],
-            ])
+//            ->add('latitude', NumberType::class, [
+//                'label' => 'Latitude *',
+//                'required' => true,
+//                'attr' => ['class'=> 'form-control', 'placeholder' => '45.1234'],
+//            ])
+//            ->add('longitude', NumberType::class, [
+//                'label' => 'Longitude *',
+//                'required' => true,
+//                'attr' => ['class'=> 'form-control', 'placeholder' => '1.1234'],
+//            ])
             ->add('extraInfo', TextareaType::class, [
                 'label' => 'Détails du lieu',
                 'required' => false,

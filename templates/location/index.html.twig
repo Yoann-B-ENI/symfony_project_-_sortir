@@ -3,6 +3,13 @@
 {% block title %}Lieux d'évènements{% endblock %}
 
 {% block body %}
+    {# Flash messages for geocoding warnings #}
+    {% for message in app.flashes('warning') %}
+        <div class="alert alert-warning">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
     <div class="container mt-5">
         <h1 class="mb-4 text-center">Liste des lieux</h1>
 
@@ -60,6 +67,7 @@
                     {{ form_widget(locForm.roadname, { 'attr': {'class': 'form-control', 'placeholder': 'Rue de ...'} }) }}
                 </div>
 
+            
                 <div class="mb-3">
                     {{ form_label(locForm.zipcode, 'Code postal *') }}
                     {{ form_widget(locForm.zipcode, { 'attr': {'class': 'form-control', 'placeholder': '00000'} }) }}
@@ -84,34 +92,10 @@
                     {% endif %}
                 </div>
 
-                <div class="mb-3">
-                    {{ form_label(locForm.latitude, 'Latitude *') }}
-                    {{ form_widget(locForm.latitude, { 'attr': {'class': 'form-control', 'placeholder': '45.1234'} }) }}
-                    {% if locForm.latitude.vars.errors|length > 0 %}
-                        <div class="text-danger">
-                            {% for error in locForm.latitude.vars.errors %}
-                                <p>{{ error.message }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    {{ form_label(locForm.longitude, 'Longitude *') }}
-                    {{ form_widget(locForm.longitude, { 'attr': {'class': 'form-control', 'placeholder': '1.1234'} }) }}
-                    {% if locForm.longitude.vars.errors|length > 0 %}
-                        <div class="text-danger">
-                            {% for error in locForm.longitude.vars.errors %}
-                                <p>{{ error.message }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    {{ form_label(locForm.extraInfo, 'Détails du lieu') }}
-                    {{ form_widget(locForm.extraInfo, { 'attr': {'class': 'form-control', 'placeholder': 'Informations supplémentaires sur le lieu (numéro de salle, ...)'} }) }}
-                </div>
+            <div class="mb-3">
+                {{ form_label(locForm.extraInfo, 'Détails du lieu') }}
+                {{ form_widget(locForm.extraInfo, { 'attr': {'class': 'form-control', 'placeholder': 'Informations supplémentaires sur le lieu (numéro de salle, ...)'} }) }}
+            </div>
 
                 <button type="submit" class="btn btn-success">Enregistrer</button>
                 {{ form_end(locForm) }}

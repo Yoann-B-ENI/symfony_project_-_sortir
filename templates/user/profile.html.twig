@@ -20,11 +20,12 @@
                         <p class="card-text">Nom : {{ user.lastname }} </p>
                         <p class="card-text">Téléphone: {{ user.telephone }} </p>
                         <p class="card-text">Email: {{ user.email }} </p>
+                        {% if app.user.id == user.id %}
                         <div>
                             <a href="{{ path('user_update', {'id': user.id}) }}" title="Modifier un utilisateur" class="btn btn-outline-dark">Modifier</a>
                             <a href="{{ path('user_delete', {'id': user.id}) }}" class="btn btn-outline-dark" onclick="return confirm('Voulez-vous supprimer votre profil ?')">Supprimer</a>
                         </div>
-
+                        {%  endif %}
                     </div>
                 </div>
             </div>

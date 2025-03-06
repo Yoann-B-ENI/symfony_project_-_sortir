@@ -77,10 +77,11 @@ class EventNotificationHandler
 
         $now = new \DateTimeImmutable();
         $startsAt = $event->getStartsAt();
-        $reminderTime = $startsAt->modify('-48 hours');
 
-        if ($reminderTime <= $now && $startsAt > $now) {
+        $reminderStart = $startsAt->modify('-48 hours');
+        $reminderEnd = $startsAt->modify('-47 hours');
 
+        if ($now >= $reminderStart && $now <= $reminderEnd && $startsAt > $now) {
 
             $email = (new Email())
                 ->from('noreply@sortir.com')
